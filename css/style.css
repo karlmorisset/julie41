@@ -1,0 +1,109 @@
+:root {
+  --bg: #0f2a3d;
+  --bg-2: #16384f;
+  --land: #2c5a73;
+  --land-stroke: #4b819e;
+  --accent: #f2a541;
+  --accent-2: #ffd08a;
+  --ok: #6fcf97;
+  --text: #f1ece1;
+  --muted: #a9bcc9;
+  --lock: #7b8d99;
+}
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+body {
+  background: radial-gradient(1200px 800px at 50% -10%, var(--bg-2), var(--bg));
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.bouton {
+  background: var(--accent);
+  color: #2a1a05;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.6rem;
+  font: inherit;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.bouton.secondaire {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--muted);
+}
+.page-jeu {
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.2rem;
+  flex: 1;
+}
+.page-jeu .retour {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.page-jeu h1 {
+  font-weight: normal;
+  margin: 0.8rem 0 0.2rem;
+}
+.page-jeu .etape {
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+.reponse {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.reponse input {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--land-stroke);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.message {
+  min-height: 1.4rem;
+  margin-top: 0.8rem;
+  color: #ff8f8f;
+}
+.message.ok {
+  color: var(--ok);
+}
+.shake {
+  animation: shake 0.35s;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}

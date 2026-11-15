@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Merlo</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <main class="page-jeu">
+        <a class="retour" href="../index.html">← Retour à la carte</a>
+        <div class="etape">Étape 1 sur 9</div>
+        <h1>Merlo</h1>
+
+        <!-- ===== ICI : le jeu de cette étape ===== -->
+        <p>Le jeu de Merlo sera ici.</p>
+        <!-- ======================================= -->
+
+        <form class="reponse" id="form">
+            <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Ta réponse">
+            <button class="bouton" type="submit">Valider</button>
+        </form>
+        <div class="message" id="msg"></div>
+        <div id="suite" style="display:none; margin-top:1rem">
+            <a class="bouton" href="../index.html">Retour à la carte</a>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "merlo";
+        garde(ID);
+        document.getElementById("form").addEventListener("submit", e => {
+            e.preventDefault();
+            const msg = document.getElementById("msg");
+            if (validerReponse(ID, document.getElementById("saisie").value)) {
+                msg.textContent = "Bravo, la route continue !";
+                msg.className = "message ok";
+                document.getElementById("suite").style.display = "block";
+            } else {
+                msg.textContent = "Ce n'est pas ça, réessaie.";
+                msg.className = "message";
+                e.target.classList.remove("shake"); void e.target.offsetWidth; e.target.classList.add("shake");
+            }
+        });
+    </script>
+</body>
+
+</html>
