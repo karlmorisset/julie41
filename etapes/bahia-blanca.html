@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Bahía Blanca</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 12px 16px;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header a {
+            text-decoration: none;
+            font-size: 1.4rem;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        header .etape {
+            margin-left: auto;
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        .regles strong {
+            color: var(--accent-2);
+        }
+
+        #gain {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .intro {
+            font-size: .9rem;
+            margin: 8px 0;
+            opacity: .85;
+        }
+
+        .addition {
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 2rem;
+            text-align: right;
+            width: fit-content;
+            margin: 8px auto;
+            line-height: 1.35;
+        }
+
+        .addition .ligne {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .addition .plus {
+            margin-right: 14px;
+        }
+
+        .addition .trait {
+            border-top: 3px solid currentColor;
+            margin: 4px 0;
+        }
+
+        .lettre {
+            width: 2ch;
+            text-align: center;
+        }
+
+        .saisies {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin: 10px 0;
+        }
+
+        .saisies label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            gap: 4px;
+        }
+
+        .saisies input {
+            width: 100%;
+            font-size: 1.3rem;
+            text-align: center;
+            padding: 6px 0;
+            box-sizing: border-box;
+        }
+
+        .regles {
+            font-size: .8rem;
+            opacity: .75;
+            margin: 4px 0;
+        }
+
+        #msg {
+            min-height: 1.4em;
+            text-align: center;
+            font-weight: bold;
+            margin: 6px 0;
+        }
+
+        button {
+            font-size: 1.1rem;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="../index.html" aria-label="Retour à la carte">←</a>
+        <h1>Bahía Blanca</h1>
+        <span class="etape">Étape 2 sur 9</span>
+    </header>
+
+    <p class="intro">Bahía Blanca, port de la pampa humide, porte d'entrée de la Patagonie. Pour poursuivre la route,
+        résous cette addition codée.</p>
+
+    <div class="addition" aria-label="Addition codée">
+        <div class="ligne"><span class="lettre">A</span><span class="lettre">B</span><span class="lettre">C</span></div>
+        <div class="ligne"><span class="plus">+</span><span class="lettre">D</span><span class="lettre">E</span><span
+                class="lettre">C</span></div>
+        <div class="trait"></div>
+        <div class="ligne"><span class="lettre">F</span><span class="lettre">D</span><span class="lettre">G</span><span
+                class="lettre">E</span></div>
+    </div>
+
+    <p class="regles">Une lettre = un chiffre. Deux lettres différentes = deux chiffres différents. Aucun nombre ne
+        commence par zéro.</p>
+    <p class="regles"><strong>Deux indices :</strong> E est le double de C, et D est le double de E.</p>
+
+    <div class="saisies" id="saisies"></div>
+
+    <div id="msg"></div>
+    <button id="valider">Vérifier</button>
+
+    <div class="code-obtenu" id="gain">
+        <p>Note bien ce code, il ouvre la prochaine étape :</p>
+        <div class="code" id="code"></div>
+        <p id="prochaine"></p>
+        <a class="bouton" href="../index.html">Retour à la carte</a>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script>
+        garde("bahia-blanca");
+
+        const LETTRES = ["A", "B", "C", "D", "E", "F", "G"];
+        const conteneur = document.getElementById("saisies");
+        LETTRES.forEach(l => {
+            const lab = document.createElement("label");
+            lab.innerHTML = l + '<input type="text" inputmode="numeric" maxlength="1" data-l="' + l + '" autocomplete="off">';
+            conteneur.appendChild(lab);
+        });
+
+        const inputs = [...conteneur.querySelectorAll("input")];
+        inputs.forEach((inp, i) => {
+            inp.addEventListener("input", () => {
+                inp.value = inp.value.replace(/[^0-9]/g, "");
+                if (inp.value && inputs[i + 1]) inputs[i + 1].focus();
+            });
+        });
+
+        const msg = document.getElementById("msg");
+
+        document.getElementById("valider").onclick = () => {
+            const v = {};
+            for (const inp of inputs) {
+                if (inp.value === "") { msg.textContent = "Il manque un chiffre."; return; }
+                v[inp.dataset.l] = Number(inp.value);
+            }
+            const vals = Object.values(v);
+            if (new Set(vals).size !== vals.length) { msg.textContent = "Deux lettres ne peuvent pas avoir le même chiffre."; return; }
+            if (v.A === 0 || v.D === 0 || v.F === 0) { msg.textContent = "Un nombre ne peut pas commencer par zéro."; return; }
+
+            const n = (...ls) => Number(ls.map(l => v[l]).join(""));
+            const somme = n("A", "B", "C") + n("D", "E", "C");
+            const resultat = n("F", "D", "G", "E");
+
+            if (somme !== resultat) { msg.textContent = "L'addition ne tombe pas juste. Réessaie."; return; }
+            if (v.E !== 2 * v.C || v.D !== 2 * v.E) { msg.textContent = "L'addition est juste, mais les indices ne sont pas respectés."; return; }
+
+            // Avec les deux indices, la seule solution est 962 + 842 = 1804
+            if (!estBonneReponse("bahia-blanca", String(resultat))) {
+                msg.textContent = "Presque… vérifie tes chiffres.";
+                return;
+            }
+
+            msg.textContent = "Bravo ! " + n("A", "B", "C") + " + " + n("D", "E", "C") + " = " + resultat;
+            document.getElementById("valider").style.display = "none";
+            inputs.forEach(i => i.disabled = true);
+            document.getElementById("code").textContent = resultat;
+            document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante("bahia-blanca").nom + ".";
+            document.getElementById("gain").style.display = "block";
+        };
+    </script>
+</body>
+
+</html>
