@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Puerto Madryn</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .queens {
+            min-height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(.8rem, env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .intro,
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
+        /* --- Grille --- */
+        #grille {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            width: 100%;
+            aspect-ratio: 1;
+            border: 3px solid #0b1f2d;
+            border-radius: 6px;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .case {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0 solid #0b1f2d;
+            box-shadow: inset 0 0 0 .5px rgba(11, 31, 45, .35);
+            font-size: clamp(1.2rem, 7vw, 2rem);
+            cursor: pointer;
+            transition: background-color .4s, filter .4s;
+        }
+
+        .case.croix::after {
+            content: "✕";
+            font-size: .55em;
+            color: rgba(11, 31, 45, .55);
+        }
+
+        .case.baleine::after {
+            content: "🐋";
+        }
+
+        .case.conflit {
+            background-image: repeating-linear-gradient(45deg, rgba(200, 30, 30, .45) 0 4px, transparent 4px 9px);
+        }
+
+        /* Zones de couleur */
+        .z0 { background-color: #e9a6a6; }
+        .z1 { background-color: #f2cf86; }
+        .z2 { background-color: #9fd3a8; }
+        .z3 { background-color: #8ec5e8; }
+        .z4 { background-color: #c3a6e6; }
+        .z5 { background-color: #f0ad87; }
+        .z6 { background-color: #b9c6cf; }
+
+        /* Révélation des lettres */
+        #grille.resolu .case {
+            cursor: default;
+            filter: saturate(.35) brightness(.55);
+        }
+
+        #grille.resolu .case.baleine {
+            filter: none;
+        }
+
+        #grille.lettres .case.baleine::after {
+            content: attr(data-lettre);
+            font-weight: bold;
+            color: #0b1f2d;
+            animation: apparait .6s both;
+        }
+
+        @keyframes apparait {
+            from { transform: rotateY(90deg); opacity: 0; }
+            to { transform: rotateY(0); opacity: 1; }
+        }
+
+        .outils {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .outils .msg {
+            font-size: .85rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .petit {
+            background: none;
+            border: 1px solid var(--muted);
+            color: var(--text);
+            border-radius: 999px;
+            padding: .4rem .9rem;
+            font: inherit;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+
+        /* --- Mot final --- */
+        #mot {
+            display: none;
+        }
+
+        #mot .reponse {
+            margin-top: .6rem;
+        }
+
+        #mot .reponse input {
+            min-width: 0;
+        }
+
+        #gain {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="queens">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 3 sur 9</span>
+        </div>
+        <h1>Puerto Madryn</h1>
+        <p class="intro">De juin à décembre, les baleines franches australes viennent mettre bas dans les eaux calmes
+            de la péninsule Valdés. Aide-les à trouver chacune leur place.</p>
+        <p class="consigne">Place <strong>7 baleines</strong> : une par ligne, une par colonne et une par zone de
+            couleur. Deux baleines ne se touchent jamais, même en diagonale.<br>
+            Touche une case une fois pour la barrer ✕, deux fois pour y poser une baleine.</p>
+
+        <div id="grille"></div>
+
+        <div class="outils" id="outils">
+            <p class="msg" id="compteur">0 / 7 baleines</p>
+            <button class="petit" id="effacer" type="button">Tout effacer</button>
+        </div>
+
+        <div id="mot">
+            <p class="consigne">Les baleines ont plongé et laissé des lettres derrière elles. Remets-les dans
+                l'ordre pour trouver le mot.</p>
+            <form class="reponse" id="form">
+                <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Le mot">
+                <button class="bouton" type="submit">Valider</button>
+            </form>
+            <p class="message" id="msgMot"></p>
+        </div>
+
+        <div class="code-obtenu" id="gain">
+            <p>Note bien ce code, il ouvre la prochaine étape :</p>
+            <div class="code" id="code"></div>
+            <p id="prochaine"></p>
+            <a class="bouton" href="../index.html">Retour à la carte</a>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "puerto-madryn";
+        garde(ID);
+
+        // Zones de couleur (une solution unique, trouvable sans tâtonner).
+        const ZONES = [
+            "1111100",
+            "1111002",
+            "4414322",
+            "4444335",
+            "4445555",
+            "4665555",
+            "4665555"
+        ].map(l => [...l].map(Number));
+
+        // Lettres cachées sous les baleines de la solution, ligne par ligne (anagramme de BALEINE).
+        const LETTRES = { "0,5": "N", "1,2": "E", "2,6": "B", "3,4": "I", "4,0": "L", "5,3": "E", "6,1": "A" };
+
+        const N = 7;
+        const grille = document.getElementById("grille");
+        const compteur = document.getElementById("compteur");
+        const etat = Array.from({ length: N }, () => Array(N).fill(0)); // 0 vide, 1 croix, 2 baleine
+        const cases = [];
+        let resolu = false;
+
+        const zone = (r, c) => (r >= 0 && r < N && c >= 0 && c < N) ? ZONES[r][c] : -1;
+
+        for (let r = 0; r < N; r++) {
+            cases.push([]);
+            for (let c = 0; c < N; c++) {
+                const k = document.createElement("div");
+                k.className = "case z" + ZONES[r][c];
+                // Bordures épaisses entre deux zones différentes
+                const bord = (dr, dc) => zone(r + dr, c + dc) !== -1 && zone(r + dr, c + dc) !== ZONES[r][c] ? "2px" : "0";
+                k.style.borderWidth = [bord(-1, 0), bord(0, 1), bord(1, 0), bord(0, -1)].join(" ");
+                k.onclick = () => toucher(r, c);
+                grille.appendChild(k);
+                cases[r].push(k);
+            }
+        }
+
+        function toucher(r, c) {
+            if (resolu) return;
+            etat[r][c] = (etat[r][c] + 1) % 3;
+            afficher();
+        }
+
+        function baleines() {
+            const b = [];
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (etat[r][c] === 2) b.push([r, c]);
+            return b;
+        }
+
+        function enConflit(a, b) {
+            return a[0] === b[0] || a[1] === b[1] || ZONES[a[0]][a[1]] === ZONES[b[0]][b[1]]
+                || (Math.abs(a[0] - b[0]) <= 1 && Math.abs(a[1] - b[1]) <= 1);
+        }
+
+        function afficher() {
+            const b = baleines();
+            const conflits = new Set();
+            for (let i = 0; i < b.length; i++)
+                for (let j = i + 1; j < b.length; j++)
+                    if (enConflit(b[i], b[j])) { conflits.add(b[i].join()); conflits.add(b[j].join()); }
+
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const k = cases[r][c];
+                k.classList.toggle("croix", etat[r][c] === 1);
+                k.classList.toggle("baleine", etat[r][c] === 2);
+                k.classList.toggle("conflit", conflits.has(r + "," + c));
+            }
+            compteur.textContent = b.length + " / 7 baleine" + (b.length > 1 ? "s" : "");
+
+            if (b.length === N && conflits.size === 0) terminerGrille(b);
+        }
+
+        function terminerGrille(b) {
+            resolu = true;
+            b.forEach(([r, c]) => cases[r][c].dataset.lettre = LETTRES[r + "," + c]);
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (etat[r][c] === 1) etat[r][c] = 0;
+            cases.flat().forEach(k => k.classList.remove("croix"));
+            grille.classList.add("resolu");
+            compteur.textContent = "Toutes les baleines sont à leur place !";
+            document.getElementById("effacer").style.display = "none";
+            setTimeout(() => {
+                grille.classList.add("lettres");
+                document.getElementById("mot").style.display = "block";
+            }, 1200);
+        }
+
+        document.getElementById("effacer").onclick = () => {
+            if (!confirm("Effacer toute la grille ?")) return;
+            etat.forEach(l => l.fill(0));
+            afficher();
+        };
+
+        document.getElementById("form").addEventListener("submit", e => {
+            e.preventDefault();
+            const m = document.getElementById("msgMot");
+            const saisie = document.getElementById("saisie");
+            if (estBonneReponse(ID, saisie.value)) {
+                document.getElementById("mot").style.display = "none";
+                document.getElementById("outils").style.display = "none";
+                document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
+                document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante(ID).nom + ".";
+                document.getElementById("gain").style.display = "block";
+            } else {
+                m.textContent = "Ce n'est pas ça. Toutes les lettres doivent servir.";
+                saisie.classList.remove("shake"); void saisie.offsetWidth; saisie.classList.add("shake");
+            }
+        });
+    </script>
+</body>
+
+</html>

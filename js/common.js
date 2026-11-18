@@ -5,7 +5,7 @@
 const ETAPES = [
   { id: "merlo", nom: "Merlo", reponse: "DEPART" },
   { id: "bahia-blanca", nom: "Bahía Blanca", reponse: "1804" },
-  { id: "puerto-madryn", nom: "Puerto Madryn", reponse: "TEST3" },
+  { id: "puerto-madryn", nom: "Puerto Madryn", reponse: "BALEINE" },
   { id: "ushuaia", nom: "Ushuaïa", reponse: "TEST4" },
   { id: "mont-tarn", nom: "Mont Tarn", reponse: "TEST5" },
   { id: "punta-arenas", nom: "Punta Arenas", reponse: "TEST6" },
