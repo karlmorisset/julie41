@@ -62,20 +62,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            container-type: size;
         }
 
+        /* Cases carrées : leur côté est le plus grand qui tient en largeur et en hauteur.
+           --n (lettres) et --e (essais) sont fixés en JS. */
         #grille {
+            --cell: min(calc((100cqw - (var(--n) - 1) * 5px) / var(--n)),
+                    calc((100cqh - (var(--e) - 1) * 5px) / var(--e)));
             display: grid;
             gap: 5px;
-            height: 100%;
-            max-width: 100%;
-            aspect-ratio: 5 / 6;
-            /* 5 colonnes x 6 lignes, mis à jour en JS */
+            grid-template-rows: repeat(var(--e), var(--cell));
         }
 
         .ligne {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(var(--n), var(--cell));
             gap: 5px;
         }
 
@@ -83,7 +85,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(1rem, 5.5vw, 1.6rem);
+            font-size: calc(var(--cell) * .5);
             font-weight: bold;
             border-radius: 8px;
             background: rgba(255, 255, 255, .07);
@@ -184,11 +186,37 @@
             color: #5f7a8c;
         }
 
-        /* Fin de partie : remplace le clavier */
+        /* Bas de page : message + clavier. En fin de partie, #fin se superpose au clavier
+           dans le même espace, pour que la grille ne change pas de taille. */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        #bas.fini #msg,
+        #bas.fini #clavier {
+            visibility: hidden;
+        }
+
         #fin {
             display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            flex: 0 0 auto;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .6rem;
         }
 
         #fin .bouton {
@@ -210,19 +238,19 @@
         <div class="zone-grille">
             <div id="grille"></div>
         </div>
-        <p class="msg" id="msg"></p>
+        <div id="bas">
+            <p class="msg" id="msg"></p>
 
-        <div id="clavier"></div>
+            <div id="clavier"></div>
 
-        <div id="fin">
-            <p class="msg ok" id="msgFin"></p>
-            <div class="code-obtenu" id="gain" style="display:none">
-                <p>Note bien ce code, il ouvre la prochaine étape :</p>
-                <div class="code" id="code"></div>
-                <p id="prochaine"></p>
-                <a class="bouton" href="../index.html">Retour à la carte</a>
+            <div id="fin">
+                <p class="msg ok" id="msgFin"></p>
+                <div class="code-obtenu" id="gain" style="display:none">
+                    <div class="code" id="code"></div><br>
+                    <a class="bouton" href="../index.html">Retour à la carte</a>
+                </div>
+                <button class="bouton" id="rejouer" style="display:none">Rejouer</button>
             </div>
-            <button class="bouton" id="rejouer" style="display:none">Rejouer</button>
         </div>
     </main>
 
@@ -243,12 +271,11 @@
         let fini = false;
 
         // --- Grille ---
-        grille.style.aspectRatio = LONG + " / " + ESSAIS;
-        grille.style.gridTemplateRows = "repeat(" + ESSAIS + ", 1fr)";
+        grille.style.setProperty("--n", LONG);
+        grille.style.setProperty("--e", ESSAIS);
         for (let r = 0; r < ESSAIS; r++) {
             const ligne = document.createElement("div");
             ligne.className = "ligne";
-            ligne.style.gridTemplateColumns = "repeat(" + LONG + ", 1fr)";
             for (let c = 0; c < LONG; c++) {
                 const k = document.createElement("div");
                 k.className = "case";
@@ -349,15 +376,12 @@
 
         function terminer(gagne) {
             fini = true;
-            document.getElementById("clavier").style.display = "none";
-            document.getElementById("msg").style.display = "none";
-            document.getElementById("fin").style.display = "block";
+            document.getElementById("bas").classList.add("fini");
             const mf = document.getElementById("msgFin");
             if (gagne) {
-                mf.textContent = "Bien joué !";
+                mf.textContent = "Bien joué ! Note ce code pour ouvrir " + etapeSuivante(ID).nom + " :";
                 mf.className = "msg ok";
                 document.getElementById("code").textContent = MOT;
-                document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante(ID).nom + ".";
                 document.getElementById("gain").style.display = "block";
             } else {
                 mf.textContent = "Pas cette fois, retente ta chance !";
