@@ -7,15 +7,33 @@
     <title>Puerto Madryn</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
         .queens {
-            min-height: 100dvh;
+            height: 100dvh;
             max-width: 480px;
             width: 100%;
             margin: 0 auto;
             padding: max(.6rem, env(safe-area-inset-top)) 1rem max(.8rem, env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
-            gap: .6rem;
+            gap: .5rem;
+        }
+
+        .zone-grille {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            container-type: size;
         }
 
         .entete {
@@ -39,7 +57,6 @@
             font-size: 1.4rem;
         }
 
-        .intro,
         .consigne {
             color: var(--muted);
             font-size: .85rem;
@@ -57,8 +74,8 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             grid-template-rows: repeat(7, 1fr);
-            width: 100%;
-            aspect-ratio: 1;
+            width: min(100cqw, 100cqh);
+            height: min(100cqw, 100cqh);
             border: 3px solid #0b1f2d;
             border-radius: 6px;
             overflow: hidden;
@@ -85,8 +102,8 @@
             color: rgba(11, 31, 45, .55);
         }
 
-        .case.baleine::after {
-            content: "🐋";
+        .case.pion::after {
+            content: "🐧";
         }
 
         .case.conflit {
@@ -108,11 +125,11 @@
             filter: saturate(.35) brightness(.55);
         }
 
-        #grille.resolu .case.baleine {
+        #grille.resolu .case.pion {
             filter: none;
         }
 
-        #grille.lettres .case.baleine::after {
+        #grille.lettres .case.pion::after {
             content: attr(data-lettre);
             font-weight: bold;
             color: #0b1f2d;
@@ -174,21 +191,21 @@
             <span class="etape">Étape 3 sur 9</span>
         </div>
         <h1>Puerto Madryn</h1>
-        <p class="intro">De juin à décembre, les baleines franches australes viennent mettre bas dans les eaux calmes
-            de la péninsule Valdés. Aide-les à trouver chacune leur place.</p>
-        <p class="consigne">Place <strong>7 baleines</strong> : une par ligne, une par colonne et une par zone de
-            couleur. Deux baleines ne se touchent jamais, même en diagonale.<br>
-            Touche une case une fois pour la barrer ✕, deux fois pour y poser une baleine.</p>
+        <p class="consigne">Place <strong>7 manchots</strong> : un par ligne, un par colonne et un par zone de
+            couleur. Deux manchots ne se touchent jamais, même en diagonale.
+            Touche une case une fois pour la barrer ✕, deux fois pour y poser un manchot.</p>
 
-        <div id="grille"></div>
+        <div class="zone-grille">
+            <div id="grille"></div>
+        </div>
 
         <div class="outils" id="outils">
-            <p class="msg" id="compteur">0 / 7 baleines</p>
+            <p class="msg" id="compteur">0 / 7 manchots</p>
             <button class="petit" id="effacer" type="button">Tout effacer</button>
         </div>
 
         <div id="mot">
-            <p class="consigne">Les baleines ont plongé et laissé des lettres derrière elles. Remets-les dans
+            <p class="consigne">Les manchots ont plongé et laissé des lettres derrière eux. Remets-les dans
                 l'ordre pour trouver le mot.</p>
             <form class="reponse" id="form">
                 <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Le mot">
@@ -221,13 +238,13 @@
             "4665555"
         ].map(l => [...l].map(Number));
 
-        // Lettres cachées sous les baleines de la solution, ligne par ligne (anagramme de BALEINE).
+        // Lettres cachées sous les manchots de la solution, ligne par ligne (anagramme de BALEINE).
         const LETTRES = { "0,5": "N", "1,2": "E", "2,6": "B", "3,4": "I", "4,0": "L", "5,3": "E", "6,1": "A" };
 
         const N = 7;
         const grille = document.getElementById("grille");
         const compteur = document.getElementById("compteur");
-        const etat = Array.from({ length: N }, () => Array(N).fill(0)); // 0 vide, 1 croix, 2 baleine
+        const etat = Array.from({ length: N }, () => Array(N).fill(0)); // 0 vide, 1 croix, 2 manchot
         const cases = [];
         let resolu = false;
 
@@ -253,7 +270,7 @@
             afficher();
         }
 
-        function baleines() {
+        function pions() {
             const b = [];
             for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (etat[r][c] === 2) b.push([r, c]);
             return b;
@@ -265,7 +282,7 @@
         }
 
         function afficher() {
-            const b = baleines();
+            const b = pions();
             const conflits = new Set();
             for (let i = 0; i < b.length; i++)
                 for (let j = i + 1; j < b.length; j++)
@@ -274,10 +291,10 @@
             for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
                 const k = cases[r][c];
                 k.classList.toggle("croix", etat[r][c] === 1);
-                k.classList.toggle("baleine", etat[r][c] === 2);
+                k.classList.toggle("pion", etat[r][c] === 2);
                 k.classList.toggle("conflit", conflits.has(r + "," + c));
             }
-            compteur.textContent = b.length + " / 7 baleine" + (b.length > 1 ? "s" : "");
+            compteur.textContent = b.length + " / 7 manchot" + (b.length > 1 ? "s" : "");
 
             if (b.length === N && conflits.size === 0) terminerGrille(b);
         }
@@ -288,7 +305,7 @@
             for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (etat[r][c] === 1) etat[r][c] = 0;
             cases.flat().forEach(k => k.classList.remove("croix"));
             grille.classList.add("resolu");
-            compteur.textContent = "Toutes les baleines sont à leur place !";
+            compteur.textContent = "Tous les manchots sont à leur place !";
             document.getElementById("effacer").style.display = "none";
             setTimeout(() => {
                 grille.classList.add("lettres");
