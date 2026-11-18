@@ -107,3 +107,29 @@ body {
     transform: translateX(8px);
   }
 }
+/* Bloc affiché en fin d'énigme : le code à noter pour l'étape suivante */
+.code-obtenu {
+  text-align: center;
+}
+.code-obtenu p {
+  margin: 0.3rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.code-obtenu .code {
+  display: inline-block;
+  margin: 0.4rem 0 0.8rem;
+  padding: 0.5rem 1.2rem;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  color: var(--accent-2);
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 0.25em;
+}
+a {
+  color: var(--accent-2);
+}
+a.bouton {
+  color: #2a1a05;
+}

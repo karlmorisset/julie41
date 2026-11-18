@@ -3,28 +3,226 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Merlo</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        /* Page jeu : plein écran, colonne flex, tout tient sans scroll */
+        .motus {
+            height: 100dvh;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(.6rem, env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .motus .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .motus .retour {
+            margin: 0;
+            font-size: .9rem;
+        }
+
+        .motus .etape {
+            margin: 0;
+            font-size: .75rem;
+        }
+
+        .motus h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        /* Zone grille : prend tout l'espace restant, la grille s'y adapte */
+        .zone-grille {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #grille {
+            display: grid;
+            gap: 5px;
+            height: 100%;
+            max-width: 100%;
+            aspect-ratio: 5 / 6;
+            /* 5 colonnes x 6 lignes, mis à jour en JS */
+        }
+
+        .ligne {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+
+        .case {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 5.5vw, 1.6rem);
+            font-weight: bold;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .07);
+            border: 2px solid var(--land-stroke);
+            text-transform: uppercase;
+            min-height: 0;
+        }
+
+        .case.remplie {
+            border-color: var(--muted);
+        }
+
+        .case.bien {
+            background: #2e9e5b;
+            border-color: #2e9e5b;
+            color: #fff;
+        }
+
+        .case.mal {
+            background: #e8b923;
+            border-color: #e8b923;
+            color: #2a1a05;
+            border-radius: 50%;
+        }
+
+        .case.absent {
+            background: #1d4a66;
+            border-color: #1d4a66;
+            color: var(--muted);
+        }
+
+        .case.indice {
+            color: var(--accent-2);
+        }
+
+        .msg {
+            min-height: 1.1rem;
+            text-align: center;
+            font-size: .85rem;
+            margin: 0;
+            color: var(--accent-2);
+        }
+
+        .msg.ok {
+            color: var(--ok);
+        }
+
+        /* Clavier */
+        #clavier {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 0 0 auto;
+        }
+
+        .rang {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .touche {
+            flex: 1 1 0;
+            max-width: 34px;
+            height: 40px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--land);
+            color: var(--text);
+            font: bold .9rem Georgia;
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .touche.action {
+            flex: 1.5 1 0;
+            max-width: 52px;
+            font-size: .95rem;
+        }
+
+        .touche.valider {
+            background: var(--accent);
+            color: #2a1a05;
+        }
+
+        .touche.bien {
+            background: #2e9e5b;
+        }
+
+        .touche.mal {
+            background: #e8b923;
+            color: #2a1a05;
+        }
+
+        .touche.absent {
+            background: #12324a;
+            color: #5f7a8c;
+        }
+
+        /* Fin de partie : remplace le clavier */
+        #fin {
+            display: none;
+            text-align: center;
+            flex: 0 0 auto;
+        }
+
+        #fin .bouton {
+            display: inline-block;
+        }
+
+    </style>
 </head>
 
 <body>
-    <main class="page-jeu">
-        <a class="retour" href="../index.html">← Retour à la carte</a>
-        <div class="etape">Étape 1 sur 9</div>
+    <main class="motus">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 1 sur 9</span>
+        </div>
         <h1>Merlo</h1>
+        <p class="consigne">Trouve le mot. La première lettre est offerte, tu as 6 essais.</p>
 
-        <!-- ===== ICI : le jeu de cette étape ===== -->
-        <p>Le jeu de Merlo sera ici.</p>
-        <!-- ======================================= -->
+        <div class="zone-grille">
+            <div id="grille"></div>
+        </div>
+        <p class="msg" id="msg"></p>
 
-        <form class="reponse" id="form">
-            <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Ta réponse">
-            <button class="bouton" type="submit">Valider</button>
-        </form>
-        <div class="message" id="msg"></div>
-        <div id="suite" style="display:none; margin-top:1rem">
-            <a class="bouton" href="../index.html">Retour à la carte</a>
+        <div id="clavier"></div>
+
+        <div id="fin">
+            <p class="msg ok" id="msgFin"></p>
+            <div class="code-obtenu" id="gain" style="display:none">
+                <p>Note bien ce code, il ouvre la prochaine étape :</p>
+                <div class="code" id="code"></div>
+                <p id="prochaine"></p>
+                <a class="bouton" href="../index.html">Retour à la carte</a>
+            </div>
+            <button class="bouton" id="rejouer" style="display:none">Rejouer</button>
         </div>
     </main>
 
@@ -32,19 +230,145 @@
     <script>
         const ID = "merlo";
         garde(ID);
-        document.getElementById("form").addEventListener("submit", e => {
-            e.preventDefault();
-            const msg = document.getElementById("msg");
-            if (validerReponse(ID, document.getElementById("saisie").value)) {
-                msg.textContent = "Bravo, la route continue !";
-                msg.className = "message ok";
-                document.getElementById("suite").style.display = "block";
-            } else {
-                msg.textContent = "Ce n'est pas ça, réessaie.";
-                msg.className = "message";
-                e.target.classList.remove("shake"); void e.target.offsetWidth; e.target.classList.add("shake");
+
+        // === Paramètres du Motus ===
+        const MOT = ETAPES[indexEtape(ID)].reponse.toUpperCase();
+        const LONG = MOT.length;
+        const ESSAIS = 6;
+
+        const grille = document.getElementById("grille");
+        const msg = document.getElementById("msg");
+        let essai = 0;
+        let courant = MOT[0];
+        let fini = false;
+
+        // --- Grille ---
+        grille.style.aspectRatio = LONG + " / " + ESSAIS;
+        grille.style.gridTemplateRows = "repeat(" + ESSAIS + ", 1fr)";
+        for (let r = 0; r < ESSAIS; r++) {
+            const ligne = document.createElement("div");
+            ligne.className = "ligne";
+            ligne.style.gridTemplateColumns = "repeat(" + LONG + ", 1fr)";
+            for (let c = 0; c < LONG; c++) {
+                const k = document.createElement("div");
+                k.className = "case";
+                ligne.appendChild(k);
             }
+            grille.appendChild(ligne);
+        }
+        const lignes = () => grille.children;
+
+        function afficherCourant() {
+            const cases = lignes()[essai].children;
+            for (let c = 0; c < LONG; c++) {
+                cases[c].textContent = courant[c] || "";
+                cases[c].className = "case" + (courant[c] ? " remplie" : "") + (c === 0 ? " indice" : "");
+            }
+        }
+
+        // --- Clavier : ⌫ à droite de la 1re rangée, ↵ à droite de la 2e ---
+        const RANGS = [
+            ["A", "Z", "E", "R", "T", "Y", "U", "I", "O", "P", "⌫"],
+            ["Q", "S", "D", "F", "G", "H", "J", "K", "L", "M", "↵"],
+            ["W", "X", "C", "V", "B", "N"]
+        ];
+        const clavier = document.getElementById("clavier");
+        const touches = {};
+        RANGS.forEach(rang => {
+            const div = document.createElement("div");
+            div.className = "rang";
+            rang.forEach(ch => {
+                const b = document.createElement("button");
+                const action = (ch === "⌫" || ch === "↵");
+                b.className = "touche" + (action ? " action" : "") + (ch === "↵" ? " valider" : "");
+                b.textContent = ch;
+                b.onclick = () => saisir(ch);
+                if (!action) touches[ch] = b;
+                div.appendChild(b);
+            });
+            clavier.appendChild(div);
         });
+
+        document.addEventListener("keydown", e => {
+            if (e.target.tagName === "INPUT") return;
+            if (e.key === "Enter") saisir("↵");
+            else if (e.key === "Backspace") saisir("⌫");
+            else if (/^[a-zA-Z]$/.test(e.key)) saisir(e.key.toUpperCase());
+        });
+
+        function saisir(ch) {
+            if (fini) return;
+            msg.textContent = "";
+            if (ch === "⌫") { if (courant.length > 1) courant = courant.slice(0, -1); }
+            else if (ch === "↵") { valider(); return; }
+            else if (courant.length < LONG) courant += ch;
+            afficherCourant();
+        }
+
+        // --- Évaluation (gère les lettres doublées) ---
+        function evaluer(prop) {
+            const res = Array(LONG).fill("absent");
+            const restantes = {};
+            for (let i = 0; i < LONG; i++) {
+                if (prop[i] === MOT[i]) res[i] = "bien";
+                else restantes[MOT[i]] = (restantes[MOT[i]] || 0) + 1;
+            }
+            for (let i = 0; i < LONG; i++) {
+                if (res[i] === "bien") continue;
+                if (restantes[prop[i]] > 0) { res[i] = "mal"; restantes[prop[i]]--; }
+            }
+            return res;
+        }
+
+        function valider() {
+            if (courant.length < LONG) { msg.textContent = "Il faut " + LONG + " lettres."; return; }
+            const res = evaluer(courant);
+            const cases = lignes()[essai].children;
+            const ordre = { absent: 0, mal: 1, bien: 2 };
+            res.forEach((r, i) => {
+                cases[i].className = "case " + r;
+                cases[i].textContent = courant[i];
+                const t = touches[courant[i]];
+                if (t) {
+                    const actuel = t.classList.contains("bien") ? "bien"
+                        : t.classList.contains("mal") ? "mal"
+                            : t.classList.contains("absent") ? "absent" : null;
+                    if (actuel === null || ordre[r] > ordre[actuel]) {
+                        t.classList.remove("bien", "mal", "absent");
+                        t.classList.add(r);
+                    }
+                }
+            });
+
+            if (courant === MOT) { terminer(true); return; }
+            essai++;
+            if (essai >= ESSAIS) { terminer(false); return; }
+            courant = MOT[0];
+            afficherCourant();
+        }
+
+        function terminer(gagne) {
+            fini = true;
+            document.getElementById("clavier").style.display = "none";
+            document.getElementById("msg").style.display = "none";
+            document.getElementById("fin").style.display = "block";
+            const mf = document.getElementById("msgFin");
+            if (gagne) {
+                mf.textContent = "Bien joué !";
+                mf.className = "msg ok";
+                document.getElementById("code").textContent = MOT;
+                document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante(ID).nom + ".";
+                document.getElementById("gain").style.display = "block";
+            } else {
+                mf.textContent = "Pas cette fois, retente ta chance !";
+                mf.className = "msg";
+                document.getElementById("rejouer").style.display = "inline-block";
+            }
+        }
+
+        document.getElementById("rejouer").onclick = () => location.reload();
+
+        afficherCourant();
     </script>
 </body>
 

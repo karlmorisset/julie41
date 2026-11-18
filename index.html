@@ -89,6 +89,28 @@
             stroke-width: 1.5;
         }
 
+        .frontiere {
+            fill: none;
+            stroke: var(--land-stroke);
+            stroke-width: 1.2;
+            stroke-dasharray: 3 4;
+            opacity: .7;
+        }
+
+        .lac {
+            fill: #1d4a66;
+            stroke: var(--land-stroke);
+            stroke-width: 1;
+        }
+
+        .mer {
+            fill: var(--muted);
+            opacity: .55;
+            font: italic 11px Georgia;
+            letter-spacing: .25em;
+            pointer-events: none;
+        }
+
         .ville {
             cursor: pointer;
         }
@@ -148,6 +170,63 @@
             }
         }
 
+        #porte {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 15, 25, .75);
+            padding: 1.5rem;
+            z-index: 10;
+        }
+
+        #porte.visible {
+            display: flex;
+        }
+
+        #porte .boite {
+            background: var(--bg-2);
+            border: 1px solid var(--land-stroke);
+            border-radius: 16px;
+            padding: 1.4rem 1.2rem 1.2rem;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        #porte h3 {
+            margin: 0 0 .4rem;
+            font-weight: normal;
+            color: var(--accent-2);
+            font-size: 1.3rem;
+        }
+
+        #porte p {
+            margin: 0;
+            color: var(--muted);
+            font-size: .9rem;
+            line-height: 1.4;
+        }
+
+        #porte .reponse {
+            margin-top: 1rem;
+        }
+
+        #porte .reponse input {
+            min-width: 0;
+        }
+
+        #porte .annuler {
+            margin-top: .8rem;
+            background: none;
+            border: 0;
+            color: var(--muted);
+            font: inherit;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+
         #toast {
             position: fixed;
             left: 50%;
@@ -174,7 +253,8 @@
     <section id="intro">
         <div class="kicker">Un voyage en Patagonie</div>
         <h1>De <em>Merlo</em><br>jusqu'au bout du monde</h1>
-        <p>Neuf villes, neuf énigmes. Chaque réponse ouvre la route vers l'étape suivante.
+        <p>Neuf villes, neuf énigmes. Chaque énigme résolue te donne un code :
+            garde-le bien, c'est lui qui ouvrira la route vers l'étape suivante.
             Nous partons de Merlo, au pied des collines de San Luis, et nous remonterons
             le fil de la Patagonie jusqu'à la dernière étape. À la fin, une phrase t'attend.</p>
         <button class="bouton" id="start">Commencer le voyage</button>
@@ -188,29 +268,120 @@
         <svg id="carte" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet"></svg>
     </section>
 
+    <div id="porte">
+        <div class="boite">
+            <h3 id="porteTitre"></h3>
+            <p id="porteTexte"></p>
+            <form class="reponse" id="porteForm">
+                <input id="porteSaisie" autocomplete="off" autocapitalize="characters" placeholder="Code">
+                <button class="bouton" type="submit">Ouvrir</button>
+            </form>
+            <p class="message" id="porteMsg"></p>
+            <button class="annuler" id="porteAnnuler" type="button">Annuler</button>
+        </div>
+    </div>
+
     <div id="toast"></div>
 
     <script src="js/common.js"></script>
     <script>
-        // Positions approximatives sur le viewBox 400x600 (carte stylisée du cône sud)
-        const POS = {
-            "merlo": [215, 70],
-            "mendoza": [140, 105],
-            "bariloche": [120, 250],
-            "el-chalten": [130, 400],
-            "el-calafate": [155, 425],
-            "puerto-natales": [105, 460],
-            "punta-arenas": [130, 515],
-            "puerto-montt": [80, 215],
-            "chaiten": [78, 275]
+        // ---- Projection : (lon, lat) -> (x, y) dans un viewBox 400 x 600 ----
+        const LON0 = -76, LON1 = -54, LAT0 = -32, LAT1 = -56;
+        const W = 400, H = 600;
+        const proj = (lon, lat) => [
+            ((lon - LON0) / (LON1 - LON0)) * W,
+            ((lat - LAT0) / (LAT1 - LAT0)) * H
+        ];
+        const chemin = (pts, fermer = true) =>
+            pts.map((p, i) => (i ? "L" : "M") + proj(p[0], p[1]).map(v => v.toFixed(1)).join(" ")).join(" ") + (fermer ? " Z" : "");
+
+        // ---- Villes (lon, lat réelles) ----
+        const GEO = {
+            "merlo": [-65.02, -32.35],  // Merlo, San Luis
+            "bahia-blanca": [-62.27, -38.72],
+            "puerto-madryn": [-65.04, -42.77],
+            "ushuaia": [-68.30, -54.80],
+            "mont-tarn": [-69.10, -54.47],
+            "punta-arenas": [-70.91, -53.16],
+            "torres-del-paine": [-72.99, -51.06],
+            "grey-glacier": [-73.20, -50.95],
+            "puerto-montt": [-72.94, -41.47]
         };
 
-        // Silhouette très simplifiée de l'Argentine/Chili
-        const TERRE = "M150 20 L260 30 L275 90 L240 200 L215 300 L195 400 L175 480 L140 560 L110 540 L95 440 L85 330 L70 220 L85 130 L110 60 Z";
+        // Petits décalages visuels (en px) pour séparer les villes trop proches
+        const DECALAGE = {
+            "ushuaia": [14, 10],
+            "mont-tarn": [-10, -8],
+            "torres-del-paine": [-16, 0],
+            "grey-glacier": [14, 14]
+        };
+
+        // Position et ancrage des étiquettes : [dx, dy, ancre]
+        const LABEL = {
+            "merlo": [18, 4, "start"],
+            "bahia-blanca": [18, 4, "start"],
+            "puerto-madryn": [18, 4, "start"],
+            "ushuaia": [-18, 22, "end"],
+            "mont-tarn": [-18, 4, "end"],
+            "punta-arenas": [-18, 4, "end"],
+            "torres-del-paine": [-18, 4, "end"],
+            "grey-glacier": [18, 6, "start"],
+            "puerto-montt": [-18, 4, "end"]
+        };
+
+        function position(id) {
+            const [x, y] = proj(GEO[id][0], GEO[id][1]);
+            const d = DECALAGE[id] || [0, 0];
+            return [x + d[0], y + d[1]];
+        }
+
+        // ---- Décor (lon, lat) ----
+        // Continent : côte Pacifique (Chili) du nord au sud, puis côte Atlantique du sud au nord
+        const CONTINENT = [
+            [-76, -32], [-71.6, -32], [-71.6, -33.5], [-72.0, -35.5], [-72.6, -37.5],
+            [-73.4, -39.5], [-73.6, -41.5], [-73.9, -43.5], [-74.4, -46], [-75.3, -48],
+            [-75.2, -50], [-74.3, -51.8], [-73.2, -52.6], [-72.0, -53.4], [-70.6, -53.8],
+            [-69.2, -52.9], [-68.4, -52.4], [-68.4, -51.6], [-68.9, -50.1], [-67.7, -49.3],
+            [-66.9, -47.9], [-65.7, -47.6], [-65.9, -46.5], [-67.5, -45.7], [-66.3, -45.2],
+            [-65.2, -44.4], [-65.5, -43.3], [-64.0, -42.6], [-64.9, -41.9], [-65.0, -41.0],
+            [-62.4, -40.6], [-62.2, -39.2], [-61.0, -38.9], [-57.6, -38.2], [-57.5, -36.5],
+            [-56.9, -36.3], [-56.6, -34.9], [-54, -34.5], [-54, -32]
+        ];
+
+        // Terre de Feu (île principale) - le détroit de Magellan la sépare du continent
+        const TERRE_DE_FEU = [
+            [-70.9, -52.7], [-69.2, -52.6], [-68.4, -52.4], [-68.4, -53.4], [-67.4, -54.0],
+            [-65.2, -54.7], [-66.5, -55.1], [-68.5, -55.2], [-70.8, -55.0], [-71.7, -54.4],
+            [-72.0, -53.6], [-71.0, -53.2]
+        ];
+
+        // Chiloé
+        const CHILOE = [
+            [-74.2, -41.8], [-73.6, -41.8], [-73.4, -42.8], [-73.7, -43.6],
+            [-74.2, -43.2], [-74.3, -42.4]
+        ];
+
+        // Îles Malouines (Falkland)
+        const MALOUINES = [
+            [-61.3, -51.3], [-58.0, -51.2], [-57.8, -52.0], [-59.2, -52.3], [-61.0, -52.0]
+        ];
+
+        // Frontière Chili / Argentine (très simplifiée), tracée en pointillé
+        const FRONTIERE = [
+            [-71.6, -32.8], [-70.0, -35.0], [-70.8, -38.0], [-71.7, -41.0], [-71.7, -44.5],
+            [-72.6, -47.5], [-73.2, -50.0], [-72.3, -51.5], [-71.3, -52.3], [-68.4, -52.4]
+        ];
+
+        // Lacs : Nahuel Huapi, Argentino
+        const LACS = [
+            [[-71.7, -41.1], [-71.1, -41.0], [-71.3, -41.3]],
+            [[-73.0, -50.1], [-72.2, -50.2], [-72.5, -50.5], [-73.0, -50.4]]
+        ];
 
         const svg = document.getElementById("carte");
         const NS = "http://www.w3.org/2000/svg";
         const el = (n, a = {}) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+        const texte = (cls, x, y, txt, attrs = {}) => { const t = el("text", { class: cls, x, y, ...attrs }); t.textContent = txt; return t; };
 
         function toast(txt) {
             const t = document.getElementById("toast");
@@ -218,36 +389,91 @@
             clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("visible"), 3500);
         }
 
+        function dessinerDecor() {
+            svg.appendChild(el("path", { d: chemin(CONTINENT), class: "terre" }));
+            svg.appendChild(el("path", { d: chemin(TERRE_DE_FEU), class: "terre" }));
+            svg.appendChild(el("path", { d: chemin(CHILOE), class: "terre" }));
+            svg.appendChild(el("path", { d: chemin(MALOUINES), class: "terre" }));
+            svg.appendChild(el("path", { d: chemin(FRONTIERE, false), class: "frontiere" }));
+            LACS.forEach(l => svg.appendChild(el("path", { d: chemin(l), class: "lac" })));
+
+            const [ox, oy] = proj(-57, -46);
+            svg.appendChild(texte("mer", ox, oy, "OCÉAN ATLANTIQUE", { "text-anchor": "middle" }));
+            const [px, py] = proj(-75, -44);
+            const p = texte("mer", px, py, "PACIFIQUE", { "text-anchor": "middle", transform: `rotate(-90 ${px} ${py})` });
+            svg.appendChild(p);
+        }
+
         function dessiner() {
             svg.innerHTML = "";
-            svg.appendChild(el("path", { d: TERRE, class: "terre" }));
+            dessinerDecor();
 
-            const pts = ETAPES.map(e => POS[e.id].join(",")).join(" ");
+            const pts = ETAPES.map(e => position(e.id).join(",")).join(" ");
             svg.appendChild(el("polyline", { points: pts, class: "trajet" }));
 
             const prog = lireProgression();
             const derniere = prog[prog.length - 1];
 
             ETAPES.forEach((e, i) => {
-                const [x, y] = POS[e.id];
+                const [x, y] = position(e.id);
                 const ouverte = prog.includes(e.id);
                 const faite = ouverte && prog.includes((ETAPES[i + 1] || {}).id);
                 const g = el("g", { class: "ville" + (ouverte ? " ouverte" : "") + (faite ? " faite" : "") + (e.id === derniere ? " actuelle" : "") });
-                g.appendChild(el("circle", { class: "zone", cx: x, cy: y, r: 28 }));
-                g.appendChild(el("circle", { class: "halo", cx: x, cy: y, r: 14 }));
-                g.appendChild(el("circle", { class: "rond", cx: x, cy: y, r: 14 }));
-                const num = el("text", { class: "num", x, y }); num.textContent = ouverte ? (i + 1) : "🔒";
-                g.appendChild(num);
-                const nom = el("text", { class: "nom", x: x + 20, y: y + 4 }); nom.textContent = e.nom;
-                g.appendChild(nom);
+                g.appendChild(el("circle", { class: "zone", cx: x, cy: y, r: 22 }));
+                g.appendChild(el("circle", { class: "halo", cx: x, cy: y, r: 11 }));
+                g.appendChild(el("circle", { class: "rond", cx: x, cy: y, r: 11 }));
+                g.appendChild(texte("num", x, y, ouverte ? (i + 1) : "🔒"));
+                const [dx, dy, ancre] = LABEL[e.id] || [18, 4, "start"];
+                g.appendChild(texte("nom", x + dx, y + dy, e.nom, { "text-anchor": ancre }));
 
                 g.addEventListener("click", () => {
                     if (ouverte) { location.href = "etapes/" + e.id + ".html"; }
+                    else if (prog.includes(ETAPES[i - 1].id)) { ouvrirPorte(i); }
                     else { toast("Résous d'abord l'énigme de " + ETAPES[i - 1].nom + " pour débloquer " + e.nom + "."); }
                 });
                 svg.appendChild(g);
             });
         }
+
+        // ---- Saisie du code pour ouvrir une étape ----
+        const porte = document.getElementById("porte");
+        const porteSaisie = document.getElementById("porteSaisie");
+        const porteMsg = document.getElementById("porteMsg");
+        let porteEtape = null;
+
+        function ouvrirPorte(i) {
+            porteEtape = ETAPES[i];
+            document.getElementById("porteTitre").textContent = porteEtape.nom;
+            document.getElementById("porteTexte").textContent =
+                "Entre le code obtenu à " + ETAPES[i - 1].nom + " pour ouvrir cette étape.";
+            porteSaisie.value = "";
+            porteMsg.textContent = "";
+            porte.classList.add("visible");
+            porteSaisie.focus();
+        }
+
+        function fermerPorte() {
+            porte.classList.remove("visible");
+            porteEtape = null;
+        }
+
+        document.getElementById("porteAnnuler").onclick = fermerPorte;
+        porte.addEventListener("click", e => { if (e.target === porte) fermerPorte(); });
+
+        document.getElementById("porteForm").addEventListener("submit", e => {
+            e.preventDefault();
+            if (essayerCode(porteEtape.id, porteSaisie.value)) {
+                porteMsg.textContent = "La route est ouverte !";
+                porteMsg.className = "message ok";
+                const id = porteEtape.id;
+                setTimeout(() => location.href = "etapes/" + id + ".html", 900);
+            } else {
+                porteMsg.textContent = "Ce n'est pas le bon code.";
+                porteMsg.className = "message";
+                const boite = porte.querySelector(".boite");
+                boite.classList.remove("shake"); void boite.offsetWidth; boite.classList.add("shake");
+            }
+        });
 
         function afficherCarte() {
             document.getElementById("intro").style.display = "none";
@@ -260,15 +486,14 @@
             afficherCarte();
         };
 
-        // Intro vue ou retour depuis une page de jeu : on va directement à la carte
         if (localStorage.getItem("patagonie.intro")) afficherCarte();
 
-        // Redirection depuis le garde (URL tapée à la main)
         const refus = new URLSearchParams(location.search).get("refus");
         if (refus) {
             afficherCarte();
             const i = indexEtape(refus);
-            if (i > 0) toast("Résous d'abord l'énigme de " + ETAPES[i - 1].nom + " pour débloquer " + ETAPES[i].nom + ".");
+            if (i > 0 && estDeverrouillee(ETAPES[i - 1].id)) ouvrirPorte(i);
+            else if (i > 0) toast("Résous d'abord l'énigme de " + ETAPES[i - 1].nom + " pour débloquer " + ETAPES[i].nom + ".");
         }
     </script>
 </body>

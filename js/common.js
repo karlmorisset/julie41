@@ -1,15 +1,17 @@
-// Ordre du parcours (de Merlo à Chaitén) et réponses attendues.
-// Les réponses sont à remplacer au fur et à mesure que les jeux sont créés.
+// Ordre du parcours (de Merlo à Puerto Montt).
+// `reponse` = le code que Julie obtient en résolvant l'étape.
+// Ce code est ensuite demandé sur la carte pour ouvrir l'étape suivante.
+// Les réponses TESTn sont à remplacer au fur et à mesure que les jeux sont créés.
 const ETAPES = [
-  { id: "merlo", nom: "Merlo", reponse: "TEST1" },
-  { id: "mendoza", nom: "Mendoza", reponse: "TEST2" },
-  { id: "bariloche", nom: "Bariloche", reponse: "TEST3" },
-  { id: "el-chalten", nom: "El Chaltén", reponse: "TEST4" },
-  { id: "el-calafate", nom: "El Calafate", reponse: "TEST5" },
-  { id: "puerto-natales", nom: "Puerto Natales", reponse: "TEST6" },
-  { id: "punta-arenas", nom: "Punta Arenas", reponse: "TEST7" },
-  { id: "puerto-montt", nom: "Puerto Montt", reponse: "TEST8" },
-  { id: "chaiten", nom: "Chaitén", reponse: "TEST9" },
+  { id: "merlo", nom: "Merlo", reponse: "DEPART" },
+  { id: "bahia-blanca", nom: "Bahía Blanca", reponse: "1804" },
+  { id: "puerto-madryn", nom: "Puerto Madryn", reponse: "TEST3" },
+  { id: "ushuaia", nom: "Ushuaïa", reponse: "TEST4" },
+  { id: "mont-tarn", nom: "Mont Tarn", reponse: "TEST5" },
+  { id: "punta-arenas", nom: "Punta Arenas", reponse: "TEST6" },
+  { id: "torres-del-paine", nom: "Torres del Paine", reponse: "TEST7" },
+  { id: "grey-glacier", nom: "Grey Glacier", reponse: "TEST8" },
+  { id: "puerto-montt", nom: "Puerto Montt", reponse: "TEST9" },
 ];
 
 const CLE = "patagonie.deverrouilles";
@@ -17,7 +19,7 @@ const CLE = "patagonie.deverrouilles";
 const normaliser = (s) =>
   s
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/\s+/g, "")
     .toUpperCase();
 
@@ -52,11 +54,22 @@ function garde(id) {
   }
 }
 
-// Valide la réponse saisie pour l'étape `id`.
-// Si OK : débloque l'étape suivante et renvoie true.
-function validerReponse(id, saisie) {
+// Sur la carte : ouvre l'étape `id` si `saisie` est le code de l'étape précédente.
+function essayerCode(id, saisie) {
   const i = indexEtape(id);
-  if (normaliser(saisie) !== normaliser(ETAPES[i].reponse)) return false;
-  if (ETAPES[i + 1]) deverrouiller(ETAPES[i + 1].id);
+  if (i <= 0) return false;
+  if (normaliser(saisie) !== normaliser(ETAPES[i - 1].reponse)) return false;
+  deverrouiller(id);
   return true;
+}
+
+// Dans une page de jeu : vrai si `saisie` est la bonne réponse de l'étape `id`.
+// Ne débloque rien : Julie doit noter le code et le saisir sur la carte.
+function estBonneReponse(id, saisie) {
+  return normaliser(saisie) === normaliser(ETAPES[indexEtape(id)].reponse);
+}
+
+// Nom de l'étape qui suit `id` (ou null si c'est la dernière).
+function etapeSuivante(id) {
+  return ETAPES[indexEtape(id) + 1] || null;
 }
