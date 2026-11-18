@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Ushuaïa</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .crypto {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
+        /* Réglette de César : alphabet clair en haut, alphabet décalé en bas, flèches pour tourner */
+        .roue {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .roue .rangs {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            border: 1px solid var(--land-stroke);
+            border-radius: 8px;
+            padding: 4px 3px;
+        }
+
+        .roue .alphabet {
+            display: flex;
+            justify-content: space-between;
+            font: .78rem ui-monospace, Menlo, monospace;
+        }
+
+        .roue .alphabet span {
+            width: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .roue .haut {
+            color: var(--text);
+            border-bottom: 1px dashed var(--land-stroke);
+            padding-bottom: 2px;
+        }
+
+        .roue .bas {
+            color: var(--accent);
+        }
+
+        .roue button {
+            flex: 0 0 30px;
+            height: 44px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--land);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .decalage {
+            text-align: center;
+            font-size: .75rem;
+            color: var(--muted);
+            margin: -.2rem 0 0;
+        }
+
+        /* --- Message chiffré --- */
+        /* Le message se place à distance raisonnable sous l'alphabet, pas au milieu du vide */
+        .zone-message {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: clamp(1.2rem, 7dvh, 4rem);
+        }
+
+        #message {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: .9rem 1.1rem;
+        }
+
+        .mot {
+            display: flex;
+            gap: 3px;
+        }
+
+        .signe {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            width: 30px;
+        }
+
+        .signe .clair {
+            width: 100%;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid var(--land-stroke);
+            font-size: 1.35rem;
+            font-weight: bold;
+            color: var(--text);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+        }
+
+        .signe .chiffre {
+            font: .8rem ui-monospace, Menlo, monospace;
+            color: var(--accent);
+        }
+
+        .signe.choisi .clair {
+            background: rgba(242, 165, 65, .35);
+            border-bottom-color: var(--accent);
+        }
+
+        .signe.ponct {
+            width: 10px;
+        }
+
+        .signe.ponct .clair {
+            border: 0;
+            cursor: default;
+        }
+
+        #message.resolu .clair {
+            color: var(--ok);
+            border-bottom-color: var(--ok);
+            background: none;
+            cursor: default;
+        }
+
+        /* --- Bas : clavier, ou code en fin de partie (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        #clavier {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .rang {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .touche {
+            flex: 1 1 0;
+            max-width: 34px;
+            height: clamp(40px, 6dvh, 50px);
+            border: 0;
+            border-radius: 6px;
+            background: var(--land);
+            color: var(--text);
+            font: bold .9rem Georgia;
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .touche.action {
+            flex: 1.5 1 0;
+            max-width: 52px;
+        }
+
+        .touche.prise {
+            background: #12324a;
+            color: #5f7a8c;
+        }
+
+        #bas.fini #clavier {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin p {
+            margin: 0;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .6rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="crypto">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 4 sur 9</span>
+        </div>
+        <h1>Ushuaïa</h1>
+        <p class="consigne">Ce message a été chiffré avec le <strong>code de César</strong> : chaque lettre a été
+            décalée du même nombre de rangs dans l'alphabet (par exemple, avec un décalage de 3, A devient D, B devient E…).
+            Touche une case puis une lettre du clavier pour la déchiffrer partout.</p>
+        <div class="roue">
+            <button type="button" id="gauche" aria-label="Décaler vers la gauche">◀</button>
+            <div class="rangs">
+                <div class="alphabet haut" id="rangClair"></div>
+                <div class="alphabet bas" id="rangDecale"></div>
+            </div>
+            <button type="button" id="droite" aria-label="Décaler vers la droite">▶</button>
+        </div>
+        <p class="decalage" id="decalage"></p>
+
+        <div class="zone-message">
+            <div id="message"></div>
+        </div>
+
+        <div id="bas">
+            <div id="clavier"></div>
+            <div id="fin" class="code-obtenu">
+                <p class="msg ok" id="msgFin"></p>
+                <div class="code" id="code"></div>
+                <a class="bouton" href="../index.html">Retour à la carte</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "ushuaia";
+        garde(ID);
+
+        // === Code de César : chaque lettre est décalée de DECALAGE rangs (A→H, B→I…) ===
+        const DECALAGE = 7;
+        const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const SECRET = ALPHA.slice(DECALAGE) + ALPHA.slice(0, DECALAGE);
+        const chiffrer = ch => { const i = ALPHA.indexOf(ch); return i < 0 ? ch : SECRET[i]; };
+
+        // Message à déchiffrer ; son dernier mot est le code de l'étape (dans common.js)
+        const CLAIR = "CE SERA MIEUX QU'UN GEL DOUCHE";
+        const CHIFFRE = [...CLAIR].map(chiffrer).join("");
+        const VRAI = {}; // lettre chiffrée -> lettre claire
+        [...CLAIR].forEach((ch, i) => { if (ALPHA.includes(ch)) VRAI[CHIFFRE[i]] = ch; });
+
+        const choix = {}; // lettre chiffrée -> lettre proposée par Julie
+        let selection = null;
+        let resolu = false;
+
+        // --- Message ---
+        const message = document.getElementById("message");
+        const signes = []; // { lettre chiffrée, élément }
+        CHIFFRE.split(" ").forEach(mot => {
+            const m = document.createElement("div");
+            m.className = "mot";
+            [...mot].forEach(ch => {
+                const s = document.createElement("div");
+                const lettre = ALPHA.includes(ch);
+                s.className = "signe" + (lettre ? "" : " ponct");
+                s.innerHTML = '<div class="clair"></div><div class="chiffre"></div>';
+                s.querySelector(".chiffre").textContent = lettre ? ch : "";
+                if (lettre) {
+                    s.querySelector(".clair").onclick = () => choisir(ch);
+                    signes.push({ ch, el: s });
+                } else {
+                    s.querySelector(".clair").textContent = ch;
+                }
+                m.appendChild(s);
+            });
+            message.appendChild(m);
+        });
+
+        // --- Clavier ---
+        const RANGS = [
+            ["A", "Z", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["Q", "S", "D", "F", "G", "H", "J", "K", "L", "M"],
+            ["W", "X", "C", "V", "B", "N", "⌫"]
+        ];
+        const clavier = document.getElementById("clavier");
+        const touches = {};
+        RANGS.forEach(rang => {
+            const div = document.createElement("div");
+            div.className = "rang";
+            rang.forEach(ch => {
+                const b = document.createElement("button");
+                b.className = "touche" + (ch === "⌫" ? " action" : "");
+                b.textContent = ch;
+                b.onclick = () => saisir(ch);
+                if (ch !== "⌫") touches[ch] = b;
+                div.appendChild(b);
+            });
+            clavier.appendChild(div);
+        });
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "Backspace") saisir("⌫");
+            else if (/^[a-zA-Z]$/.test(e.key)) saisir(e.key.toUpperCase());
+        });
+
+        function choisir(ch) {
+            if (resolu) return;
+            selection = (selection === ch) ? null : ch;
+            afficher();
+        }
+
+        function saisir(touche) {
+            if (resolu || !selection) return;
+            if (touche === "⌫") {
+                delete choix[selection];
+            } else {
+                // Une lettre claire ne peut servir qu'une fois : on la retire d'ailleurs
+                for (const k in choix) if (choix[k] === touche) delete choix[k];
+                choix[selection] = touche;
+                // Passe à la prochaine lettre pas encore déchiffrée
+                const suivante = signes.find(s => !choix[s.ch]);
+                selection = suivante ? suivante.ch : null;
+            }
+            afficher();
+            verifier();
+        }
+
+        function afficher() {
+            signes.forEach(({ ch, el }) => {
+                el.querySelector(".clair").textContent = choix[ch] || "";
+                el.classList.toggle("choisi", ch === selection);
+            });
+            const prises = new Set(Object.values(choix));
+            for (const t in touches) touches[t].classList.toggle("prise", prises.has(t));
+        }
+
+        function verifier() {
+            if (!Object.keys(VRAI).every(k => choix[k] === VRAI[k])) return;
+            resolu = true;
+            selection = null;
+            afficher();
+            message.classList.add("resolu");
+            document.getElementById("msgFin").textContent =
+                "Bien joué ! Le dernier mot est ton code pour " + etapeSuivante(ID).nom + " :";
+            document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
+            setTimeout(() => document.getElementById("bas").classList.add("fini"), 600);
+        }
+
+        // --- Réglette : sous chaque lettre claire, la lettre qui la code avec le décalage choisi ---
+        let essaiDecalage = 0;
+        const rangClair = document.getElementById("rangClair");
+        const rangDecale = document.getElementById("rangDecale");
+        rangClair.innerHTML = [...ALPHA].map(c => "<span>" + c + "</span>").join("");
+        function afficherRoue() {
+            rangDecale.innerHTML = [...ALPHA].map((c, i) => "<span>" + ALPHA[(i + essaiDecalage) % 26] + "</span>").join("");
+            document.getElementById("decalage").textContent = "Décalage : " + essaiDecalage;
+        }
+        document.getElementById("gauche").onclick = () => { essaiDecalage = (essaiDecalage + 1) % 26; afficherRoue(); };
+        document.getElementById("droite").onclick = () => { essaiDecalage = (essaiDecalage + 25) % 26; afficherRoue(); };
+        afficherRoue();
+
+        afficher();
+    </script>
+</body>
+
+</html>

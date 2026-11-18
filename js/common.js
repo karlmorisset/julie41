@@ -6,7 +6,7 @@ const ETAPES = [
   { id: "merlo", nom: "Merlo", reponse: "DEPART" },
   { id: "bahia-blanca", nom: "Bahía Blanca", reponse: "1804" },
   { id: "puerto-madryn", nom: "Puerto Madryn", reponse: "BALEINE" },
-  { id: "ushuaia", nom: "Ushuaïa", reponse: "TEST4" },
+  { id: "ushuaia", nom: "Ushuaïa", reponse: "DOUCHE" },
   { id: "mont-tarn", nom: "Mont Tarn", reponse: "TEST5" },
   { id: "punta-arenas", nom: "Punta Arenas", reponse: "TEST6" },
   { id: "torres-del-paine", nom: "Torres del Paine", reponse: "TEST7" },
@@ -20,8 +20,8 @@ const normaliser = (s) =>
   s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, "")
-    .toUpperCase();
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, ""); // espaces, apostrophes, ponctuation ignorés
 
 function lireProgression() {
   try {
