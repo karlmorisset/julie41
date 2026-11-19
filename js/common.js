@@ -92,3 +92,6 @@ function marquerResolue(id) {
     localStorage.setItem(CLE_RESOLUES, JSON.stringify(r));
   }
 }
+
+// Quand on modifie common.js ou style.css, augmenter le ?v=… dans les balises
+// <script>/<link> de toutes les pages, pour que les téléphones rechargent la nouvelle version.

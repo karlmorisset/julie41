@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0f2a3d">
     <title>De Merlo à Delorme</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <style>
         #intro {
             flex: 1;
@@ -265,7 +265,7 @@
     </div>
 
 
-    <script src="js/common.js"></script>
+    <script src="js/common.js?v=2"></script>
     <script>
         // ---- Projection : (lon, lat) -> (x, y) dans un viewBox 400 x 600 ----
         const LON0 = -76, LON1 = -54, LAT0 = -32, LAT1 = -56;
@@ -381,7 +381,8 @@
             contenu.appendChild(el("polyline", { points: pts, class: "trajet" }));
 
             const prog = lireProgression();
-            const resolues = lireResolues();
+            // Garde-fou : si un ancien common.js est encore en cache, la carte s'affiche quand même
+            const resolues = typeof lireResolues === "function" ? lireResolues() : [];
             // Une épreuve est verte dès qu'elle est gagnée (ou si la suivante est déjà ouverte)
             const estFaite = i => resolues.includes(ETAPES[i].id) || (prog.includes(ETAPES[i].id) && prog.includes((ETAPES[i + 1] || {}).id));
             // Le halo désigne la prochaine chose à faire : l'épreuve en cours, ou l'étape à ouvrir avec le code
