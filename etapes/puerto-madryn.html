@@ -72,8 +72,8 @@
         /* --- Grille --- */
         #grille {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(7, 1fr);
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-rows: repeat(7, minmax(0, 1fr));
             width: min(100cqw, 100cqh);
             height: min(100cqw, 100cqh);
             border: 3px solid #0b1f2d;
@@ -165,21 +165,59 @@
             cursor: pointer;
         }
 
-        /* --- Mot final --- */
+        /* --- Bas : outils, puis le mot à trouver, puis le code (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        /* Hauteur fixée dès l'apparition du mot : la grille ne bouge plus jusqu'à la fin */
+        #bas.mot {
+            height: 9.5rem;
+        }
+
         #mot {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #bas.mot #outils {
             display: none;
         }
 
-        #mot .reponse {
-            margin-top: .6rem;
+        #bas.mot #mot {
+            display: flex;
         }
 
         #mot .reponse input {
             min-width: 0;
         }
 
+        #mot .message {
+            text-align: center;
+        }
+
+        #bas.gagne #mot {
+            visibility: hidden;
+        }
+
         #gain {
             display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #bas.gagne #gain {
+            display: flex;
+        }
+
+        #gain .code {
+            margin: .3rem 0 .6rem;
         }
     </style>
 </head>
@@ -191,7 +229,7 @@
             <span class="etape">Étape 3 sur 9</span>
         </div>
         <h1>Puerto Madryn</h1>
-        <p class="consigne">Place <strong>7 manchots</strong> : un par ligne, un par colonne et un par zone de
+        <p class="consigne" id="consigne">Place <strong>7 manchots</strong> : un par ligne, un par colonne et un par zone de
             couleur. Deux manchots ne se touchent jamais, même en diagonale.
             Touche une case une fois pour la barrer ✕, deux fois pour y poser un manchot.</p>
 
@@ -199,14 +237,13 @@
             <div id="grille"></div>
         </div>
 
+        <div id="bas">
         <div class="outils" id="outils">
             <p class="msg" id="compteur">0 / 7 manchots</p>
             <button class="petit" id="effacer" type="button">Tout effacer</button>
         </div>
 
         <div id="mot">
-            <p class="consigne">Les manchots ont plongé et laissé des lettres derrière eux. Remets-les dans
-                l'ordre pour trouver le mot.</p>
             <form class="reponse" id="form">
                 <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Le mot">
                 <button class="bouton" type="submit">Valider</button>
@@ -215,10 +252,10 @@
         </div>
 
         <div class="code-obtenu" id="gain">
-            <p>Note bien ce code, il ouvre la prochaine étape :</p>
-            <div class="code" id="code"></div>
             <p id="prochaine"></p>
+            <div class="code" id="code"></div>
             <a class="bouton" href="../index.html">Retour à la carte</a>
+        </div>
         </div>
     </main>
 
@@ -309,7 +346,11 @@
             document.getElementById("effacer").style.display = "none";
             setTimeout(() => {
                 grille.classList.add("lettres");
-                document.getElementById("mot").style.display = "block";
+                const consigne = document.getElementById("consigne");
+                consigne.style.minHeight = consigne.offsetHeight + "px";
+                consigne.innerHTML = "Tous les manchots sont à leur place ! Ils ont plongé et laissé des " +
+                    "lettres derrière eux : remets-les dans l'ordre pour trouver le mot.";
+                document.getElementById("bas").classList.add("mot");
             }, 1200);
         }
 
@@ -325,11 +366,10 @@
             const saisie = document.getElementById("saisie");
             if (estBonneReponse(ID, saisie.value)) {
                 marquerResolue(ID);
-                document.getElementById("mot").style.display = "none";
-                document.getElementById("outils").style.display = "none";
+                saisie.blur();
                 document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
-                document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante(ID).nom + ".";
-                document.getElementById("gain").style.display = "block";
+                document.getElementById("prochaine").textContent = "Bravo ! Note bien ce code, il ouvre " + etapeSuivante(ID).nom + " :";
+                document.getElementById("bas").classList.add("gagne");
             } else {
                 m.textContent = "Ce n'est pas ça. Toutes les lettres doivent servir.";
                 saisie.classList.remove("shake"); void saisie.offsetWidth; saisie.classList.add("shake");
