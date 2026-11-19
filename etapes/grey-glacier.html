@@ -53,6 +53,12 @@
             font-size: .8rem;
             line-height: 1.35;
             margin: 0;
+            text-wrap: pretty;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
         }
 
         /* --- Grille : la taille d'une case est la plus grande qui tient --- */
@@ -333,8 +339,12 @@
             marquerResolue(ID);
             grille.classList.add("resolu");
             const b = PERS[SOL_ACT.indexOf(0)];
-            document.getElementById("msgFin").textContent =
-                "Bravo ! Ce que " + b + " a frôlé en kayak est ton code pour " + etapeSuivante(ID).nom + " :";
+            // Le message prend la place de la consigne ; en bas, seulement le code (la grille ne bouge pas)
+            const consigne = document.querySelector(".consigne");
+            consigne.style.minHeight = consigne.offsetHeight + "px";
+            consigne.innerHTML = "Bravo, tout le monde est à sa place ! Ce que " + b +
+                " a frôlé en kayak est ton code pour <strong>" + etapeSuivante(ID).nom + "</strong> :";
+            document.getElementById("msgFin").style.display = "none";
             document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
             document.getElementById("bas").classList.add("fini");
         }
