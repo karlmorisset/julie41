@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Torres del Paine</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .nono {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
+        /* --- Grille : la taille d'une case est la plus grande qui tient --- */
+        .zone-grille {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            container-type: size;
+        }
+
+        #grille {
+            --indG: 66px;
+            /* largeur des indices de ligne */
+            --indH: 34px;
+            /* hauteur des indices de colonne */
+            --cell: min(calc((100cqw - var(--indG)) / 10), calc((100cqh - var(--indH)) / 10));
+            display: grid;
+            grid-template-columns: var(--indG) repeat(10, var(--cell));
+            grid-template-rows: var(--indH) repeat(10, var(--cell));
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .ind {
+            display: flex;
+            font: .72rem ui-monospace, Menlo, monospace;
+            color: var(--accent-2);
+            transition: opacity .3s;
+        }
+
+        .ind.col {
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 3px;
+            line-height: 1.15;
+        }
+
+        .ind.lig {
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            padding-right: 6px;
+        }
+
+        .ind.ok {
+            opacity: .3;
+        }
+
+        .case {
+            border-right: 1px solid rgba(169, 188, 201, .2);
+            border-bottom: 1px solid rgba(169, 188, 201, .2);
+            background: rgba(255, 255, 255, .05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cell) * .5);
+            color: var(--muted);
+            transition: background-color .5s;
+        }
+
+        /* Traits plus marqués toutes les 5 cases */
+        .case.c4 {
+            border-right-color: rgba(169, 188, 201, .55);
+        }
+
+        .case.r4 {
+            border-bottom-color: rgba(169, 188, 201, .55);
+        }
+
+        .case.c0 {
+            border-left: 1px solid rgba(169, 188, 201, .55);
+        }
+
+        .case.r0 {
+            border-top: 1px solid rgba(169, 188, 201, .55);
+        }
+
+        .case.c9 {
+            border-right-color: rgba(169, 188, 201, .55);
+        }
+
+        .case.r9 {
+            border-bottom-color: rgba(169, 188, 201, .55);
+        }
+
+        .case.plein {
+            background: var(--text);
+        }
+
+        .case.croix::after {
+            content: "✕";
+        }
+
+        /* Révélation : granit et lac */
+        #grille.resolu .case {
+            border-color: transparent;
+            background: transparent;
+        }
+
+        #grille.resolu .case.plein {
+            background: #b9b2a6;
+        }
+
+        #grille.resolu .case.plein.lac {
+            background: #4aa3df;
+        }
+
+        #grille.resolu .case.croix::after {
+            content: "";
+        }
+
+        #grille.resolu .ind {
+            opacity: 0;
+        }
+
+        /* --- Bas : hauteur fixe, outils puis code en fin de partie --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+            height: 8.5rem;
+        }
+
+        #outils {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+        }
+
+        #outils p {
+            margin: 0;
+            font-size: .8rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .petit {
+            background: none;
+            border: 1px solid var(--muted);
+            color: var(--text);
+            border-radius: 999px;
+            padding: .4rem .9rem;
+            font: inherit;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+
+        #bas.fini #outils {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin p {
+            margin: 0;
+            font-size: .85rem;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="nono">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 7 sur 9</span>
+        </div>
+        <h1>Torres del Paine</h1>
+        <p class="consigne" id="consigne">Noircis les cases pour faire apparaître un dessin. Les chiffres donnent,
+            dans l'ordre, la longueur des blocs de cases noires de chaque ligne et colonne : <strong>3 1</strong> =
+            3 cases noires, au moins une case blanche, puis 1 case noire.</p>
+
+        <div class="zone-grille">
+            <div id="grille"></div>
+        </div>
+
+        <div id="bas">
+            <div id="outils">
+                <p>Touche une case une fois pour la noircir, deux fois pour la barrer ✕.<br>Tu peux glisser le doigt
+                    pour en remplir plusieurs.</p>
+                <button class="petit" id="effacer" type="button">Tout effacer</button>
+            </div>
+            <div id="fin" class="code-obtenu">
+                <p id="msgFin"></p>
+                <div class="code" id="code"></div>
+                <a class="bouton" href="../index.html">Retour à la carte</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "torres-del-paine";
+        garde(ID);
+
+        // Les trois tours, le massif et le lac (lignes 8 et 9). Solution unique, trouvable sans tâtonner.
+        const DESSIN = [
+            "....#.....",
+            "....#...#.",
+            ".#..##..#.",
+            ".#..##.##.",
+            "##..##.##.",
+            "##.###.##.",
+            "##.###.###",
+            "##########",
+            ".#.#.#.#.#",
+            "#.#.#.#.#."
+        ];
+        const N = 10;
+        const SOL = DESSIN.map(l => [...l].map(ch => ch === "#"));
+        const blocs = ligne => {
+            const b = []; let n = 0;
+            ligne.forEach(v => { if (v) n++; else if (n) { b.push(n); n = 0; } });
+            if (n) b.push(n);
+            return b.length ? b : [0];
+        };
+        const IND_L = SOL.map(blocs);
+        const IND_C = SOL[0].map((_, j) => blocs(SOL.map(l => l[j])));
+
+        const etat = Array.from({ length: N }, () => Array(N).fill(0)); // 0 vide, 1 noir, 2 croix
+        const grille = document.getElementById("grille");
+        const cases = [], indL = [], indC = [];
+        let resolu = false;
+
+        // Coin vide, puis indices de colonnes, puis chaque ligne : indice + 10 cases
+        grille.appendChild(document.createElement("div"));
+        IND_C.forEach(b => {
+            const d = document.createElement("div");
+            d.className = "ind col";
+            d.innerHTML = b.map(n => "<span>" + n + "</span>").join("");
+            grille.appendChild(d); indC.push(d);
+        });
+        for (let r = 0; r < N; r++) {
+            const d = document.createElement("div");
+            d.className = "ind lig";
+            d.innerHTML = IND_L[r].map(n => "<span>" + n + "</span>").join("");
+            grille.appendChild(d); indL.push(d);
+            cases.push([]);
+            for (let c = 0; c < N; c++) {
+                const k = document.createElement("div");
+                k.className = "case r" + r + " c" + c + (r >= 8 ? " lac" : "");
+                k.dataset.r = r; k.dataset.c = c;
+                grille.appendChild(k); cases[r].push(k);
+            }
+        }
+
+        // --- Toucher / glisser : la première case décide de l'état appliqué à toutes celles survolées ---
+        let pinceau = null;
+        const caseSous = e => {
+            const el = document.elementFromPoint(e.clientX, e.clientY);
+            return el && el.classList.contains("case") ? el : null;
+        };
+        function peindre(k) {
+            const r = +k.dataset.r, c = +k.dataset.c;
+            if (etat[r][c] === pinceau) return;
+            etat[r][c] = pinceau;
+            afficherCase(r, c);
+        }
+        grille.addEventListener("pointerdown", e => {
+            if (resolu) return;
+            const k = caseSous(e);
+            if (!k) return;
+            e.preventDefault();
+            pinceau = (etat[+k.dataset.r][+k.dataset.c] + 1) % 3;
+            peindre(k);
+        });
+        grille.addEventListener("pointermove", e => {
+            if (pinceau === null) return;
+            const k = caseSous(e);
+            if (k) peindre(k);
+        });
+        const lacher = () => { if (pinceau !== null) { pinceau = null; verifier(); } };
+        window.addEventListener("pointerup", lacher);
+        window.addEventListener("pointercancel", lacher);
+
+        function afficherCase(r, c) {
+            const k = cases[r][c];
+            k.classList.toggle("plein", etat[r][c] === 1);
+            k.classList.toggle("croix", etat[r][c] === 2);
+        }
+
+        // Indices satisfaits : grisés, pour aider à suivre
+        function verifier() {
+            const noir = etat.map(l => l.map(v => v === 1));
+            for (let r = 0; r < N; r++) indL[r].classList.toggle("ok", blocs(noir[r]).join() === IND_L[r].join());
+            for (let c = 0; c < N; c++) indC[c].classList.toggle("ok", blocs(noir.map(l => l[c])).join() === IND_C[c].join());
+            const gagne = SOL.every((l, r) => l.every((v, c) => v === noir[r][c]));
+            if (gagne) terminer();
+        }
+
+        function terminer() {
+            resolu = true;
+            grille.classList.add("resolu");
+            const consigne = document.getElementById("consigne");
+            consigne.style.minHeight = consigne.offsetHeight + "px"; // la grille ne doit pas bouger
+            consigne.innerHTML = "Les trois tours du Paine se dressent au-dessus du lac : des aiguilles " +
+                "de plus de 2 000 m, taillées par les glaciers dans une roche très dure…";
+            document.getElementById("msgFin").textContent = "… le granit ! Ton code pour " + etapeSuivante(ID).nom + " :";
+            document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
+            setTimeout(() => document.getElementById("bas").classList.add("fini"), 900);
+        }
+
+        document.getElementById("effacer").onclick = () => {
+            if (resolu || !confirm("Effacer toute la grille ?")) return;
+            etat.forEach(l => l.fill(0));
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) afficherCase(r, c);
+            verifier();
+        };
+
+        verifier();
+    </script>
+</body>
+
+</html>
