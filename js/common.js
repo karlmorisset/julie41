@@ -7,7 +7,7 @@ const ETAPES = [
   { id: "bahia-blanca", nom: "Bahía Blanca", reponse: "1804" },
   { id: "puerto-madryn", nom: "Puerto Madryn", reponse: "BALEINE" },
   { id: "ushuaia", nom: "Ushuaïa", reponse: "DOUCHE" },
-  { id: "mont-tarn", nom: "Mont Tarn", reponse: "TEST5" },
+  { id: "mont-tarn", nom: "Mont Tarn", reponse: "DARWIN" },
   { id: "punta-arenas", nom: "Punta Arenas", reponse: "TEST6" },
   { id: "torres-del-paine", nom: "Torres del Paine", reponse: "TEST7" },
   { id: "grey-glacier", nom: "Grey Glacier", reponse: "TEST8" },

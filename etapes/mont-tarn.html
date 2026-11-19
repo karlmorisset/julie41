@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Mont Tarn</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .pendu {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
+        /* --- Les trois mots --- */
+        .zone-mots {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: clamp(.8rem, 3dvh, 1.6rem);
+            padding-top: clamp(.6rem, 4dvh, 2.5rem);
+        }
+
+        .mot .definition {
+            font-size: .8rem;
+            color: var(--muted);
+            margin: 0 0 .3rem;
+        }
+
+        .mot .definition b {
+            color: var(--accent);
+            font-weight: normal;
+            margin-right: .3rem;
+        }
+
+        .mot .cases {
+            display: flex;
+            gap: 3px;
+        }
+
+        .mot .case {
+            flex: 1 1 0;
+            max-width: 30px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid var(--land-stroke);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .mot.trouve .case {
+            color: var(--ok);
+            border-bottom-color: var(--ok);
+        }
+
+        .mot .case.perdu {
+            color: #ff8f8f;
+        }
+
+        .essais {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: .85rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .essais .ronds {
+            letter-spacing: .25em;
+            color: var(--accent);
+        }
+
+        /* --- Bas : clavier, ou fin de partie (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        #clavier {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .rang {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .touche {
+            flex: 1 1 0;
+            max-width: 34px;
+            height: clamp(40px, 6dvh, 50px);
+            border: 0;
+            border-radius: 6px;
+            background: var(--land);
+            color: var(--text);
+            font: bold .9rem Georgia;
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .touche.bien {
+            background: #2e9e5b;
+        }
+
+        .touche.absent {
+            background: #12324a;
+            color: #5f7a8c;
+        }
+
+        #bas.fini #clavier {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: .5rem;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin p {
+            margin: 0;
+            font-size: .85rem;
+            line-height: 1.4;
+        }
+
+        #fin .adresse {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent-2);
+            word-break: break-all;
+        }
+
+        #fin .adresse span {
+            color: #e11f26;
+        }
+
+        #fin a.adresse {
+            text-decoration: none;
+        }
+
+        #fin .reponse {
+            margin: 0;
+            width: 100%;
+        }
+
+        #fin .reponse input {
+            min-width: 0;
+            padding: .7rem .8rem;
+            font-size: 1rem;
+        }
+
+        #fin .message {
+            margin: 0;
+            min-height: 1.1rem;
+            font-size: .85rem;
+        }
+
+        #fin .code {
+            margin: .2rem 0 .4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="pendu">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 5 sur 9</span>
+        </div>
+        <h1>Mont Tarn</h1>
+        <p class="consigne">Trouve les trois mots en proposant des lettres. Mis bout à bout, ils forment une
+            <strong>adresse</strong>… quelque part tout là-haut.</p>
+
+        <div class="zone-mots" id="mots"></div>
+
+        <p class="essais" id="essais"></p>
+
+        <div id="bas">
+            <div id="clavier"></div>
+            <div id="fin" class="code-obtenu">
+                <p id="msgFin"></p>
+                <div class="adresse" id="adresse"></div>
+                <a class="bouton" id="lien" target="_blank" rel="noopener">Ouvrir dans what3words</a>
+                <p id="aide" style="display:none"></p>
+                <form class="reponse" id="form" style="display:none">
+                    <input id="saisie" autocomplete="off" autocapitalize="characters" placeholder="Nom de la montagne">
+                    <button class="bouton" type="submit">Valider</button>
+                </form>
+                <p class="message" id="msgNom"></p>
+                <div class="code" id="code" style="display:none"></div>
+                <a class="bouton" id="carte" href="../index.html" style="display:none">Retour à la carte</a>
+                <button class="bouton" id="rejouer" type="button" style="display:none">Rejouer</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "mont-tarn";
+        garde(ID);
+
+        // Adresse what3words du sommet ; le nom de la montagne affiché sur la carte est le code (DARWIN).
+        const MOTS = [
+            { mot: "TRANSLATEUR", def: "Relais qui retransmet les télégrammes" },
+            { mot: "CHARISMATIQUE", def: "Qui a un ascendant naturel sur les autres" },
+            { mot: "FÉROCE", def: "Sauvage et cruel, comme une bête" }
+        ];
+        // Lettre sans accent (É → E) : taper E révèle aussi les É
+        const base = c => c.normalize("NFD")[0];
+        const ERREURS_MAX = 7;
+        const CLE_RESOLU = "patagonie.mont-tarn.resolu";
+
+        const proposees = new Set();
+        let erreurs = 0;
+        let fini = false;
+
+        // --- Mots ---
+        const zone = document.getElementById("mots");
+        const blocs = MOTS.map((m, i) => {
+            const d = document.createElement("div");
+            d.className = "mot";
+            d.innerHTML = '<p class="definition"><b>' + (i + 1) + '.</b></p><div class="cases"></div>';
+            d.querySelector(".definition").append(m.def + " (" + m.mot.length + " lettres)");
+            const cases = d.querySelector(".cases");
+            for (const ch of m.mot) {
+                const c = document.createElement("div");
+                c.className = "case";
+                cases.appendChild(c);
+            }
+            zone.appendChild(d);
+            return d;
+        });
+
+        // --- Clavier ---
+        const RANGS = [
+            ["A", "Z", "E", "R", "T", "Y", "U", "I", "O", "P"],
+            ["Q", "S", "D", "F", "G", "H", "J", "K", "L", "M"],
+            ["W", "X", "C", "V", "B", "N"]
+        ];
+        const clavier = document.getElementById("clavier");
+        const touches = {};
+        RANGS.forEach(rang => {
+            const div = document.createElement("div");
+            div.className = "rang";
+            rang.forEach(ch => {
+                const b = document.createElement("button");
+                b.className = "touche";
+                b.textContent = ch;
+                b.onclick = () => proposer(ch);
+                touches[ch] = b;
+                div.appendChild(b);
+            });
+            clavier.appendChild(div);
+        });
+
+        document.addEventListener("keydown", e => {
+            if (/^[a-zA-Z]$/.test(e.key)) proposer(e.key.toUpperCase());
+        });
+
+        const dansUnMot = ch => MOTS.some(m => [...m.mot].some(c => base(c) === ch));
+
+        function proposer(ch) {
+            if (fini || proposees.has(ch)) return;
+            proposees.add(ch);
+            if (dansUnMot(ch)) touches[ch].classList.add("bien");
+            else { touches[ch].classList.add("absent"); erreurs++; }
+            afficher();
+            if (MOTS.every(m => [...m.mot].every(c => proposees.has(base(c))))) gagner();
+            else if (erreurs >= ERREURS_MAX) perdre();
+        }
+
+        function afficher(toutReveler = false) {
+            MOTS.forEach((m, i) => {
+                const cases = blocs[i].querySelectorAll(".case");
+                [...m.mot].forEach((ch, j) => {
+                    const vu = proposees.has(base(ch));
+                    cases[j].textContent = (vu || toutReveler) ? ch : "";
+                    cases[j].classList.toggle("perdu", toutReveler && !vu);
+                });
+                blocs[i].classList.toggle("trouve", [...m.mot].every(c => proposees.has(base(c))));
+            });
+            const reste = ERREURS_MAX - erreurs;
+            document.getElementById("essais").innerHTML =
+                "<span>Encore " + reste + " erreur" + (reste > 1 ? "s" : "") + " avant le brouillard</span>" +
+                '<span class="ronds">' + "●".repeat(reste) + "○".repeat(erreurs) + "</span>";
+        }
+
+        function adresse() {
+            return MOTS.map(m => m.mot.toLowerCase()).join(".");
+        }
+
+        // Avancement de la fin, gardé si Julie quitte la page : "pendu" → "visite" (what3words ouvert) → "valide"
+        const etat = () => localStorage.getItem(CLE_RESOLU);
+        const changerEtat = e => { localStorage.setItem(CLE_RESOLU, e); montrerFin(); };
+        const $ = id => document.getElementById(id);
+        const montrer = (id, oui, mode = "block") => { $(id).style.display = oui ? mode : "none"; };
+
+        function gagner() {
+            fini = true;
+            changerEtat("pendu");
+        }
+
+        function montrerFin() {
+            MOTS.forEach(m => [...m.mot].forEach(c => proposees.add(base(c))));
+            afficher();
+            $("essais").style.visibility = "hidden";
+            $("bas").classList.add("fini");
+            const url = "https://what3words.com/" + encodeURI(adresse());
+            $("lien").href = url;
+            const e = etat();
+
+            if (e === "valide") {
+                $("msgFin").textContent = "Bien joué ! Note ce code, il ouvre " + etapeSuivante(ID).nom + " :";
+                $("code").textContent = ETAPES[indexEtape(ID)].reponse;
+                ["adresse", "lien", "aide", "form", "msgNom"].forEach(id => montrer(id, false));
+                montrer("code", true, "inline-block");
+                montrer("carte", true, "inline-block");
+            } else if (e === "visite") {
+                // De retour de what3words : l'adresse reste cliquable, on demande le nom
+                $("msgFin").textContent = "Alors, où mène cette adresse ?";
+                $("adresse").innerHTML = '<a class="adresse" href="' + url + '" target="_blank" rel="noopener"><span>///</span>' + adresse() + "</a>";
+                montrer("lien", false);
+                montrer("aide", false);
+                montrer("form", true, "flex");
+                montrer("msgNom", true);
+            } else {
+                $("msgFin").textContent = "Bien joué ! Va voir où mène cette adresse :";
+                $("adresse").innerHTML = "<span>///</span>" + adresse();
+                $("aide").textContent = "Le nom de la montagne sera ton code pour " + etapeSuivante(ID).nom + ".";
+                montrer("aide", true);
+                montrer("msgNom", false);
+            }
+        }
+
+        // Le lien s'ouvre dans un nouvel onglet ; la page passe à la saisie du nom
+        $("lien").addEventListener("click", () => setTimeout(() => changerEtat("visite"), 300));
+
+        $("form").addEventListener("submit", ev => {
+            ev.preventDefault();
+            // « Monte Darwin » ou « Mont Darwin » (comme sur la carte) sont acceptés aussi
+            const nom = normaliser($("saisie").value).replace(/^MONTE?/, "");
+            if (estBonneReponse(ID, nom)) { $("saisie").blur(); changerEtat("valide"); }
+            else {
+                $("msgNom").textContent = "Ce n'est pas ça. Regarde bien le nom du sommet.";
+                $("saisie").classList.remove("shake"); void $("saisie").offsetWidth; $("saisie").classList.add("shake");
+            }
+        });
+
+        function perdre() {
+            fini = true;
+            afficher(); // on ne révèle pas les mots manquants : elle doit rejouer
+            document.getElementById("essais").style.visibility = "hidden";
+            document.getElementById("msgFin").textContent = "Le brouillard est tombé sur le Mont Tarn… Retente l'ascension !";
+            document.getElementById("adresse").style.display = "none";
+            document.getElementById("lien").style.display = "none";
+            document.getElementById("rejouer").style.display = "inline-block";
+            document.getElementById("bas").classList.add("fini");
+        }
+
+        document.getElementById("rejouer").onclick = () => location.reload();
+
+        // Si Julie revient après être allée sur what3words, l'adresse l'attend directement.
+        if (localStorage.getItem(CLE_RESOLU)) { fini = true; montrerFin(); }
+        else afficher();
+    </script>
+</body>
+
+</html>
