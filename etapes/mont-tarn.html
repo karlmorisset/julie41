@@ -53,6 +53,7 @@
             font-size: .85rem;
             line-height: 1.4;
             margin: 0;
+            text-wrap: pretty;
         }
 
         .consigne strong {
@@ -168,10 +169,12 @@
             visibility: hidden;
         }
 
+        /* Ancré en bas : s'il est plus haut que le clavier, il s'étend vers le haut, dans l'espace libre */
         #fin {
             display: none;
             position: absolute;
-            inset: 0;
+            inset: auto 0 0 0;
+            min-height: 100%;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -187,6 +190,7 @@
             margin: 0;
             font-size: .85rem;
             line-height: 1.4;
+            text-wrap: balance;
         }
 
         #fin .adresse {
@@ -235,7 +239,7 @@
         </div>
         <h1>Mont Tarn</h1>
         <p class="consigne">Trouve les trois mots en proposant des lettres. Mis bout à bout, ils forment une
-            <strong>adresse</strong>… quelque part tout là-haut.</p>
+            <strong>adresse</strong>… quelque part tout là‑haut.</p>
 
         <div class="zone-mots" id="mots"></div>
 
