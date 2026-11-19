@@ -128,7 +128,9 @@
             align-items: flex-start;
             justify-content: center;
             padding-top: clamp(1.2rem, 7dvh, 4rem);
+            overflow-y: auto; /* filet de sécurité : jamais caché sous le clavier */
         }
+
 
         #message {
             display: flex;
@@ -255,6 +257,21 @@
 
         #fin .code {
             margin: .3rem 0 .6rem;
+        }
+        /* Écrans peu hauts (iPhone SE dans Safari, barres comprises : ~550 px) */
+        @media (max-height: 640px) {
+            .crypto { gap: .35rem; padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
+            h1 { font-size: 1.2rem; }
+            .consigne { font-size: .78rem; line-height: 1.3; }
+            .roue button { height: 38px; }
+            .zone-message { padding-top: .4rem; }
+            #message { gap: .45rem 1rem; }
+            .signe .clair { height: 28px; font-size: 1.15rem; }
+            .signe .chiffre { font-size: .7rem; }
+            .touche { height: 36px; }
+            /* Le bloc de fin, plus haut que le clavier, s'étend vers le haut dans l'espace libre */
+            #fin { inset: auto 0 0 0; }
+            #fin .code { margin: .2rem 0 .4rem; }
         }
     </style>
 </head>
