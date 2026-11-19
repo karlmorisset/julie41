@@ -82,6 +82,12 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
+            transition: transform .8s ease;
+        }
+
+        /* Les indices de gauche s'effacent : on recentre le dessin */
+        #grille.resolu {
+            transform: translateX(calc(var(--indG) / -2));
         }
 
         .ind {
@@ -198,6 +204,7 @@
             font-size: .8rem;
             color: var(--muted);
             text-align: center;
+            text-wrap: balance;
         }
 
         .petit {
