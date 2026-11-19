@@ -7,59 +7,67 @@
     <title>Bahía Blanca</title>
     <link rel="stylesheet" href="../css/style.css?v=2">
     <style>
+        html,
         body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        /* Page jeu : plein écran, colonne flex, tout tient sans scroll */
+        .addi {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
-            min-height: 100dvh;
-            margin: 0;
-            padding: 12px 16px;
-            box-sizing: border-box;
+            gap: .5rem;
         }
 
-        header {
+        .entete {
             display: flex;
-            align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        header a {
-            text-decoration: none;
-            font-size: 1.4rem;
+        .entete .retour {
+            font-size: .9rem;
         }
 
-        h1 {
-            font-size: 1.2rem;
-            margin: 0;
-        }
-
-        header .etape {
-            margin-left: auto;
+        .entete .etape {
             font-size: .75rem;
             color: var(--muted);
         }
 
-        .regles strong {
-            color: var(--accent-2);
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
         }
 
-        #gain {
-            display: none;
-            margin-top: 10px;
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.35;
+            margin: 0;
         }
 
-        .intro {
-            font-size: .9rem;
-            margin: 8px 0;
-            opacity: .85;
+        /* --- L'addition, centrée dans l'espace restant --- */
+        .zone-addition {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .addition {
             font-family: ui-monospace, Menlo, monospace;
-            font-size: 2rem;
-            text-align: right;
-            width: fit-content;
-            margin: 8px auto;
-            line-height: 1.35;
+            font-size: clamp(1.6rem, 5dvh, 2.4rem);
+            line-height: 1.3;
         }
 
         .addition .ligne {
@@ -82,86 +90,142 @@
             text-align: center;
         }
 
+        /* --- Bas : règles, saisies, bouton ; remplacés par le code en fin de partie (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .regles {
+            font-size: .8rem;
+            line-height: 1.35;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .regles strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
         .saisies {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 6px;
-            margin: 10px 0;
+            margin-top: .3rem;
         }
 
         .saisies label {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-weight: bold;
             gap: 4px;
+            font-weight: bold;
+            color: var(--accent-2);
         }
 
         .saisies input {
             width: 100%;
-            font-size: 1.3rem;
-            text-align: center;
-            padding: 6px 0;
             box-sizing: border-box;
-        }
-
-        .regles {
-            font-size: .8rem;
-            opacity: .75;
-            margin: 4px 0;
-        }
-
-        #msg {
-            min-height: 1.4em;
+            padding: 6px 0;
+            border-radius: 8px;
+            border: 1px solid var(--land-stroke);
+            background: rgba(255, 255, 255, .07);
+            color: var(--text);
+            font: bold 1.3rem ui-monospace, Menlo, monospace;
             text-align: center;
-            font-weight: bold;
-            margin: 6px 0;
         }
 
-        button {
-            font-size: 1.1rem;
-            padding: 12px;
-            border-radius: 10px;
-            border: 0;
-            cursor: pointer;
+        /* Deux lignes réservées : un message ne déplace jamais le bouton */
+        #msg {
+            min-height: 2.3em;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: .85rem;
+            line-height: 1.3;
+            color: var(--accent-2);
+        }
+
+        #valider {
+            align-self: center;
+            min-width: 60%;
+        }
+
+        #bas.fini > :not(#fin) {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin .bravo {
+            margin: 0 0 .6rem;
+            color: var(--ok);
+            font-size: 1rem;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .7rem;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <a href="../index.html" aria-label="Retour à la carte">←</a>
+    <main class="addi">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 2 sur 9</span>
+        </div>
         <h1>Bahía Blanca</h1>
-        <span class="etape">Étape 2 sur 9</span>
-    </header>
+        <p class="consigne">Bahía Blanca, port de la pampa humide, porte d'entrée de la Patagonie. Pour poursuivre la
+            route, résous cette addition codée.</p>
 
-    <p class="intro">Bahía Blanca, port de la pampa humide, porte d'entrée de la Patagonie. Pour poursuivre la route,
-        résous cette addition codée.</p>
+        <div class="zone-addition">
+            <div class="addition" aria-label="Addition codée">
+                <div class="ligne"><span class="lettre">A</span><span class="lettre">B</span><span class="lettre">C</span></div>
+                <div class="ligne"><span class="plus">+</span><span class="lettre">D</span><span class="lettre">E</span><span
+                        class="lettre">C</span></div>
+                <div class="trait"></div>
+                <div class="ligne"><span class="lettre">F</span><span class="lettre">D</span><span class="lettre">G</span><span
+                        class="lettre">E</span></div>
+            </div>
+        </div>
 
-    <div class="addition" aria-label="Addition codée">
-        <div class="ligne"><span class="lettre">A</span><span class="lettre">B</span><span class="lettre">C</span></div>
-        <div class="ligne"><span class="plus">+</span><span class="lettre">D</span><span class="lettre">E</span><span
-                class="lettre">C</span></div>
-        <div class="trait"></div>
-        <div class="ligne"><span class="lettre">F</span><span class="lettre">D</span><span class="lettre">G</span><span
-                class="lettre">E</span></div>
-    </div>
+        <div id="bas">
+            <p class="regles">Une lettre = un chiffre. Deux lettres différentes = deux chiffres différents. Aucun nombre
+                ne commence par zéro.</p>
+            <p class="regles"><strong>Deux indices :</strong> E est le double de C, et D est le double de E.</p>
 
-    <p class="regles">Une lettre = un chiffre. Deux lettres différentes = deux chiffres différents. Aucun nombre ne
-        commence par zéro.</p>
-    <p class="regles"><strong>Deux indices :</strong> E est le double de C, et D est le double de E.</p>
+            <div class="saisies" id="saisies"></div>
 
-    <div class="saisies" id="saisies"></div>
+            <p id="msg"></p>
+            <button class="bouton" id="valider" type="button">Vérifier</button>
 
-    <div id="msg"></div>
-    <button id="valider">Vérifier</button>
-
-    <div class="code-obtenu" id="gain">
-        <p>Note bien ce code, il ouvre la prochaine étape :</p>
-        <div class="code" id="code"></div>
-        <p id="prochaine"></p>
-        <a class="bouton" href="../index.html">Retour à la carte</a>
-    </div>
+            <div class="code-obtenu" id="fin">
+                <p class="bravo" id="bravo"></p>
+                <p id="prochaine"></p>
+                <div class="code" id="code"></div>
+                <a class="bouton" href="../index.html">Retour à la carte</a>
+            </div>
+        </div>
+    </main>
 
     <script src="../js/common.js?v=2"></script>
     <script>
@@ -209,12 +273,11 @@
             }
 
             marquerResolue("bahia-blanca");
-            msg.textContent = "Bravo ! " + n("A", "B", "C") + " + " + n("D", "E", "C") + " = " + resultat;
-            document.getElementById("valider").style.display = "none";
-            inputs.forEach(i => i.disabled = true);
+            inputs.forEach(i => { i.disabled = true; i.blur(); });
+            document.getElementById("bravo").textContent = "Bravo ! " + n("A", "B", "C") + " + " + n("D", "E", "C") + " = " + resultat;
+            document.getElementById("prochaine").textContent = "Note bien ce code, il ouvre " + etapeSuivante("bahia-blanca").nom + " :";
             document.getElementById("code").textContent = resultat;
-            document.getElementById("prochaine").textContent = "Prochaine étape : " + etapeSuivante("bahia-blanca").nom + ".";
-            document.getElementById("gain").style.display = "block";
+            document.getElementById("bas").classList.add("fini");
         };
     </script>
 </body>
