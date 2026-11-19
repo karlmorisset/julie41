@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Grey Glacier</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .logi {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1rem, 3dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .8rem;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        /* --- Grille : la taille d'une case est la plus grande qui tient --- */
+        .zone-grille {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            container-type: size;
+        }
+
+        #grille {
+            --lab: 58px;
+            --tete: 58px;
+            --cell: min(34px, calc((100cqw - var(--lab)) / 8), calc((100cqh - var(--tete)) / 8));
+            display: grid;
+            grid-template-columns: var(--lab) repeat(8, var(--cell));
+            grid-template-rows: var(--tete) repeat(8, var(--cell));
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .tete {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: .72rem;
+            color: var(--accent-2);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 4px 0;
+        }
+
+        .tete.obs,
+        .lab.obs {
+            color: #8ec5e8;
+        }
+
+        .lab {
+            font-size: .75rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+        }
+
+        .case {
+            border: 1px solid rgba(169, 188, 201, .25);
+            margin: 0 -1px -1px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cell) * .55);
+            cursor: pointer;
+            background: rgba(255, 255, 255, .04);
+            touch-action: manipulation;
+        }
+
+        /* Bord épais autour de chaque bloc 4×4 */
+        .case.bg {
+            border-left: 2px solid var(--land-stroke);
+        }
+
+        .case.bh {
+            border-top: 2px solid var(--land-stroke);
+        }
+
+        .case.bd {
+            border-right: 2px solid var(--land-stroke);
+        }
+
+        .case.bb {
+            border-bottom: 2px solid var(--land-stroke);
+        }
+
+        .case.non::after {
+            content: "✕";
+            color: var(--muted);
+            font-size: .8em;
+        }
+
+        /* ✕ déduit d'un ✓ : plus discret que ceux posés à la main */
+        .case.auto::after {
+            opacity: .35;
+        }
+
+        .case.oui::after {
+            content: "✓";
+            color: var(--ok);
+            font-weight: bold;
+        }
+
+        #grille.resolu .case {
+            cursor: default;
+        }
+
+        /* --- Indices, remplacés par le code en fin de partie (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        #indices {
+            margin: 0;
+            padding-left: 1.2rem;
+            font-size: .8rem;
+            line-height: 1.35;
+        }
+
+        #indices li::marker {
+            color: var(--accent);
+        }
+
+        #bas.fini #indices {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin p {
+            margin: 0;
+            font-size: .85rem;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="logi">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 8 sur 9</span>
+        </div>
+        <h1>Grey Glacier</h1>
+        <p class="consigne">Quatre visiteurs, quatre activités, quatre rencontres. Grâce aux indices, retrouve qui a
+            fait quoi et qui a vu quoi. Touche une case : ✕ puis ✓.</p>
+
+        <div class="zone-grille">
+            <div id="grille"></div>
+        </div>
+
+        <div id="bas">
+            <ol id="indices">
+                <li>Bruno et Clara ont passé la journée sur l'eau.</li>
+                <li>Qui a vu le condor marchait, mais pas sur le glacier.</li>
+                <li>Depuis le bateau, on a aperçu un guanaco sur la rive.</li>
+                <li>David n'a pas vu le condor.</li>
+                <li>Clara n'a pas vu d'iceberg.</li>
+                <li>Le renard n'a pas été aperçu depuis l'eau.</li>
+            </ol>
+            <div id="fin" class="code-obtenu">
+                <p id="msgFin"></p>
+                <div class="code" id="code"></div>
+                <a class="bouton" href="../index.html">Retour à la carte</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "grey-glacier";
+        garde(ID);
+
+        const PERS = ["Ana", "Bruno", "Clara", "David"];
+        const ACT = ["kayak", "bateau", "randonnée", "glacier"];
+        const OBS = ["iceberg", "condor", "renard", "guanaco"];
+        // Solution (index dans ACT et OBS pour chaque personne) — unique, chaque indice est nécessaire :
+        // Ana randonnée/condor, Bruno kayak/iceberg, Clara bateau/guanaco, David glacier/renard.
+        const SOL_ACT = [2, 0, 1, 3];
+        const SOL_OBS = [1, 0, 3, 2];
+
+        // Trois blocs : personnes × activités, personnes × observations, observations × activités
+        const BLOCS = { pa: [], po: [], oa: [] };
+        const etat = {}; // clé "bloc,ligne,colonne" -> 0 vide, 1 ✕, 2 ✓
+        const grille = document.getElementById("grille");
+        let resolu = false;
+
+        const ajouter = (cls, txt) => {
+            const d = document.createElement("div");
+            d.className = cls;
+            if (txt) d.textContent = txt;
+            grille.appendChild(d);
+            return d;
+        };
+
+        // En-têtes de colonnes
+        ajouter("");
+        ACT.forEach(t => ajouter("tete", t));
+        OBS.forEach(t => ajouter("tete obs", t));
+
+        function nouvelleCase(bloc, r, c) {
+            const k = ajouter("case" + (c === 0 ? " bg" : "") + (r === 0 ? " bh" : "") + (c === 3 ? " bd" : "") + (r === 3 ? " bb" : ""));
+            const cle = bloc + "," + r + "," + c;
+            etat[cle] = 0;
+            k.onclick = () => toucher(bloc, r, c);
+            BLOCS[bloc][r] = BLOCS[bloc][r] || [];
+            BLOCS[bloc][r][c] = k;
+        }
+
+        // Lignes des personnes : bloc activités puis bloc observations
+        PERS.forEach((p, r) => {
+            ajouter("lab", p);
+            for (let c = 0; c < 4; c++) nouvelleCase("pa", r, c);
+            for (let c = 0; c < 4; c++) nouvelleCase("po", r, c);
+        });
+        // Lignes des observations : bloc activités seulement
+        OBS.forEach((o, r) => {
+            ajouter("lab obs", o);
+            for (let c = 0; c < 4; c++) nouvelleCase("oa", r, c);
+            for (let c = 0; c < 4; c++) ajouter("");
+        });
+
+        const val = (bloc, r, c) => etat[bloc + "," + r + "," + c];
+
+        // ✕ automatique : case vide sur la ligne ou la colonne d'un ✓ du même bloc.
+        // Ce n'est pas un état enregistré : il disparaît dès que le ✓ est retiré.
+        function autoNon(bloc, r, c) {
+            if (val(bloc, r, c) !== 0) return false;
+            for (let i = 0; i < 4; i++)
+                if ((i !== c && val(bloc, r, i) === 2) || (i !== r && val(bloc, i, c) === 2)) return true;
+            return false;
+        }
+
+        function afficherBloc(bloc) {
+            for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+                const k = BLOCS[bloc][r][c], v = val(bloc, r, c), auto = autoNon(bloc, r, c);
+                k.classList.toggle("non", v === 1 || auto);
+                k.classList.toggle("auto", auto);
+                k.classList.toggle("oui", v === 2);
+            }
+        }
+
+        // Cycle : vide → ✕ → ✓ → vide. Un seul ✓ par ligne et par colonne : en poser un déplace l'ancien.
+        // Toucher un ✕ automatique y pose directement le ✓.
+        function toucher(bloc, r, c) {
+            if (resolu) return;
+            const cle = bloc + "," + r + "," + c;
+            const v = autoNon(bloc, r, c) ? 2 : (etat[cle] + 1) % 3;
+            if (v === 2) for (let i = 0; i < 4; i++) {
+                if (val(bloc, r, i) === 2) etat[bloc + "," + r + "," + i] = 0;
+                if (val(bloc, i, c) === 2) etat[bloc + "," + i + "," + c] = 0;
+            }
+            etat[cle] = v;
+            afficherBloc(bloc);
+            verifier();
+        }
+
+        // Gagné quand les ✓ des deux blocs « personnes » sont exactement la solution
+        function verifier() {
+            const juste = (bloc, sol) => PERS.every((_, r) => [0, 1, 2, 3].every(c =>
+                (etat[bloc + "," + r + "," + c] === 2) === (sol[r] === c)));
+            if (juste("pa", SOL_ACT) && juste("po", SOL_OBS)) terminer();
+        }
+
+        function terminer() {
+            resolu = true;
+            grille.classList.add("resolu");
+            const b = PERS[SOL_ACT.indexOf(0)];
+            document.getElementById("msgFin").textContent =
+                "Bravo ! Ce que " + b + " a frôlé en kayak est ton code pour " + etapeSuivante(ID).nom + " :";
+            document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;
+            document.getElementById("bas").classList.add("fini");
+        }
+    </script>
+</body>
+
+</html>
