@@ -148,7 +148,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: .4rem;
+            gap: .9rem;
         }
 
         #bas.fini #fin {
@@ -193,6 +193,9 @@
             </div>
             <div id="fin">
                 <p id="phrase"></p>
+                <!-- Itinéraire Google Maps (ouvre l'app sur iPhone si elle est installée) -->
+                <a class="bouton" id="yaller" target="_blank" rel="noopener"
+                    href="https://www.google.com/maps/dir/?api=1&amp;origin=8%20rue%20des%20Roquios%2C%20Nantes&amp;waypoints=5%20rue%20de%20la%20Haute-Clairi%C3%A8re%2C%20Bouguenais&amp;destination=Bistrot%20Delorme%2C%20Nantes">Y aller</a>
             </div>
         </div>
     </main>
@@ -203,7 +206,7 @@
         garde(ID);
 
         // === Phrase finale, révélée quand l'image est reconstituée ===
-        const PHRASE = "Nous sommes partis ce matin de Merlo et ce soir nous serons à Delorme";
+        const PHRASE = "Nous sommes partis ce matin de Merlo et ce soir nous dînerons à Delorme";
 
         const N = 3;
         const plateau = document.getElementById("plateau");
