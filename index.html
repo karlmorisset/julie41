@@ -171,6 +171,20 @@
             }
         }
 
+        /* Remise à zéro : discrète, en bas de la carte */
+        #recommencer {
+            align-self: center;
+            margin-top: .2rem;
+            background: none;
+            border: 0;
+            color: var(--muted);
+            opacity: .7;
+            font: inherit;
+            font-size: .8rem;
+            cursor: pointer;
+            padding: .3rem .6rem;
+        }
+
         #porte {
             position: fixed;
             inset: 0;
@@ -249,6 +263,7 @@
             <p>Touche une ville pour y entrer.</p>
         </header>
         <svg id="carte" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet"></svg>
+        <button id="recommencer" type="button">↺ Recommencer le voyage</button>
     </section>
 
     <div id="porte">
@@ -461,6 +476,13 @@
         document.getElementById("start").onclick = () => {
             localStorage.setItem("patagonie.intro", "1");
             afficherCarte();
+        };
+
+        // Efface toute la progression (clés « patagonie.* ») et revient à l'intro
+        document.getElementById("recommencer").onclick = () => {
+            if (!confirm("Effacer toute la progression et recommencer depuis le début ?")) return;
+            Object.keys(localStorage).filter(k => k.startsWith("patagonie.")).forEach(k => localStorage.removeItem(k));
+            location.href = location.pathname;
         };
 
         if (localStorage.getItem("patagonie.intro")) afficherCarte();
