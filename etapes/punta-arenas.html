@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Punta Arenas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .master {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .consigne strong {
+            color: var(--accent-2);
+            font-weight: normal;
+        }
+
+        /* --- Plateau : les lignes se partagent la hauteur disponible --- */
+        .zone-plateau {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        #plateau {
+            display: grid;
+            grid-template-rows: repeat(8, 1fr);
+            gap: 4px;
+            height: 100%;
+            width: min(100%, 300px);
+        }
+
+        .ligne {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px;
+            border-radius: 10px;
+            min-height: 0;
+        }
+
+        .ligne.active {
+            background: rgba(255, 255, 255, .07);
+        }
+
+        .ligne .num {
+            width: 1.2em;
+            font-size: .75rem;
+            color: var(--muted);
+            text-align: right;
+        }
+
+        .pions {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+            height: 100%;
+            align-items: center;
+        }
+
+        .pion {
+            height: min(30px, 80%);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 2px dashed var(--land-stroke);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0b1f2d;
+        }
+
+        .pion.plein {
+            border: 2px solid rgba(0, 0, 0, .25);
+        }
+
+        .ligne.active .pion {
+            cursor: pointer;
+        }
+
+        /* Résultat d'un essai : 4 petits ronds en carré */
+        .indices {
+            display: grid;
+            grid-template-columns: repeat(2, 9px);
+            gap: 3px;
+        }
+
+        .indices span {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, .15);
+        }
+
+        .indices .bien {
+            background: var(--ok);
+            border-color: var(--ok);
+        }
+
+        .indices .mal {
+            border: 2px solid var(--text);
+        }
+
+        /* Couleurs (index = chiffre caché) */
+        .c0 { background: #e5534b; }
+        .c1 { background: #f2c14e; }
+        .c2 { background: #57b86b; }
+        .c3 { background: #4aa3df; }
+        .c4 { background: #a87fd6; }
+        .c5 { background: #f1ece1; }
+
+        .pion.chiffre {
+            animation: retourne .6s both;
+            font-size: 1rem;
+        }
+
+        @keyframes retourne {
+            from { transform: rotateY(90deg); }
+            to { transform: rotateY(0); }
+        }
+
+        /* --- Bas : palette, ou fin de partie (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        #commandes {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .msg {
+            min-height: 1.1rem;
+            margin: 0;
+            text-align: center;
+            font-size: .85rem;
+            color: var(--accent-2);
+        }
+
+        #palette {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #palette button {
+            width: clamp(40px, 6dvh, 48px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, .3);
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        .actions {
+            display: flex;
+            gap: .6rem;
+            justify-content: center;
+        }
+
+        .actions button {
+            flex: 1;
+            max-width: 150px;
+            padding: .7rem 0;
+        }
+
+        .bouton.secondaire {
+            border-radius: 999px;
+            font: inherit;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #bas.fini #commandes {
+            visibility: hidden;
+        }
+
+        #fin {
+            display: none;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+        }
+
+        #fin p {
+            margin: 0;
+            font-size: .85rem;
+        }
+
+        #fin .code {
+            margin: .3rem 0 .5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="master">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 6 sur 9</span>
+        </div>
+        <h1>Punta Arenas</h1>
+        <p class="consigne">Trouve la combinaison de <strong>4 couleurs</strong>, chacune utilisée une seule fois,
+            en 8 essais. Après chaque essai, <span style="color:var(--ok)">●</span> = bonne couleur bien placée,
+            ○ = bonne couleur mal placée.</p>
+
+        <div class="zone-plateau">
+            <div id="plateau"></div>
+        </div>
+
+        <div id="bas">
+            <div id="commandes">
+                <p class="msg" id="msg"></p>
+                <div id="palette"></div>
+                <div class="actions">
+                    <button class="bouton secondaire" id="effacer" type="button">Effacer</button>
+                    <button class="bouton" id="valider" type="button">Valider</button>
+                </div>
+            </div>
+            <div id="fin" class="code-obtenu">
+                <p class="msg" id="msgFin"></p>
+                <div class="code" id="code"></div>
+                <a class="bouton" id="carte" href="../index.html">Retour à la carte</a>
+                <button class="bouton" id="rejouer" type="button" style="display:none">Rejouer</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "punta-arenas";
+        garde(ID);
+
+        // Chaque couleur cache le chiffre de son index (c0 = 0 … c5 = 5).
+        // La combinaison est le code de l'étape : 1520 → jaune, blanc, vert, rouge.
+        const SECRET = [...ETAPES[indexEtape(ID)].reponse].map(Number);
+        const NB_COULEURS = 6, LONG = 4, ESSAIS = 8;
+        const NOMS = ["rouge", "jaune", "vert", "bleu", "violet", "blanc"];
+
+        const plateau = document.getElementById("plateau");
+        const msg = document.getElementById("msg");
+        const lignes = [];
+        let essai = 0;
+        let courant = [];
+        let fini = false;
+
+        for (let r = 0; r < ESSAIS; r++) {
+            const l = document.createElement("div");
+            l.className = "ligne";
+            l.innerHTML = '<span class="num">' + (r + 1) + '</span><div class="pions"></div><div class="indices"></div>';
+            const pions = l.querySelector(".pions");
+            for (let i = 0; i < LONG; i++) {
+                const p = document.createElement("div");
+                p.className = "pion";
+                p.onclick = () => retirer(r, i);
+                pions.appendChild(p);
+            }
+            const ind = l.querySelector(".indices");
+            for (let i = 0; i < LONG; i++) ind.appendChild(document.createElement("span"));
+            plateau.appendChild(l);
+            lignes.push(l);
+        }
+
+        const palette = document.getElementById("palette");
+        for (let c = 0; c < NB_COULEURS; c++) {
+            const b = document.createElement("button");
+            b.className = "c" + c;
+            b.setAttribute("aria-label", NOMS[c]);
+            b.onclick = () => ajouter(c);
+            palette.appendChild(b);
+        }
+
+        function ajouter(c) {
+            if (fini) return;
+            msg.textContent = "";
+            if (courant.includes(c)) { msg.textContent = "Chaque couleur ne sert qu'une fois."; return; }
+            const trou = courant.indexOf(undefined);
+            if (trou >= 0) courant[trou] = c;
+            else if (courant.length < LONG) courant.push(c);
+            afficher();
+        }
+
+        function retirer(r, i) {
+            if (fini || r !== essai) return;
+            courant[i] = undefined;
+            afficher();
+        }
+
+        function afficher() {
+            lignes.forEach((l, r) => l.classList.toggle("active", r === essai && !fini));
+            if (essai >= ESSAIS) return; // plus de ligne à remplir
+            const pions = lignes[essai].querySelectorAll(".pion");
+            pions.forEach((p, i) => {
+                const c = courant[i];
+                p.className = "pion" + (c !== undefined ? " plein c" + c : "");
+            });
+        }
+
+        document.getElementById("effacer").onclick = () => { if (!fini) { courant = []; msg.textContent = ""; afficher(); } };
+
+        document.getElementById("valider").onclick = () => {
+            if (fini) return;
+            const prop = [...courant];
+            if (prop.length < LONG || prop.includes(undefined)) { msg.textContent = "Il faut 4 couleurs."; return; }
+
+            let bien = 0, mal = 0;
+            prop.forEach((c, i) => { if (c === SECRET[i]) bien++; else if (SECRET.includes(c)) mal++; });
+            const ind = lignes[essai].querySelectorAll(".indices span");
+            for (let i = 0; i < LONG; i++) ind[i].className = i < bien ? "bien" : i < bien + mal ? "mal" : "";
+
+            if (bien === LONG) { gagner(); return; }
+            essai++;
+            courant = [];
+            if (essai >= ESSAIS) { perdre(); return; }
+            afficher();
+        };
+
+        function gagner() {
+            fini = true;
+            afficher();
+            const pions = lignes[essai].querySelectorAll(".pion");
+            pions.forEach((p, i) => setTimeout(() => {
+                p.textContent = SECRET[i];
+                p.classList.add("chiffre");
+            }, 400 + i * 250));
+            // La consigne laisse place à l'explication ; le bas ne garde que le code
+            const consigne = document.querySelector(".consigne");
+            consigne.style.minHeight = consigne.offsetHeight + "px"; // le plateau ne doit pas bouger
+            setTimeout(() => consigne.innerHTML =
+                "Chaque couleur cachait un chiffre : <strong>" + SECRET.join("") +
+                "</strong>, l'année où Magellan a franchi le détroit qui borde Punta Arenas.", 1400);
+            document.getElementById("msgFin").textContent = "Ton code pour " + etapeSuivante(ID).nom + " :";
+            document.getElementById("code").textContent = SECRET.join("");
+            setTimeout(() => document.getElementById("bas").classList.add("fini"), 1600);
+        }
+
+        function perdre() {
+            fini = true;
+            afficher();
+            document.getElementById("msgFin").textContent = "Plus d'essais… Retente ta chance !";
+            document.getElementById("code").style.display = "none";
+            document.getElementById("carte").style.display = "none";
+            document.getElementById("rejouer").style.display = "inline-block";
+            document.getElementById("bas").classList.add("fini");
+        }
+
+        document.getElementById("rejouer").onclick = () => location.reload();
+
+        afficher();
+    </script>
+</body>
+
+</html>
