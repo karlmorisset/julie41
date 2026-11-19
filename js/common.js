@@ -73,3 +73,22 @@ function estBonneReponse(id, saisie) {
 function etapeSuivante(id) {
   return ETAPES[indexEtape(id) + 1] || null;
 }
+
+// Épreuves résolues (affichées en vert sur la carte dès la victoire)
+const CLE_RESOLUES = "patagonie.resolues";
+
+function lireResolues() {
+  try {
+    return JSON.parse(localStorage.getItem(CLE_RESOLUES)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function marquerResolue(id) {
+  const r = lireResolues();
+  if (!r.includes(id)) {
+    r.push(id);
+    localStorage.setItem(CLE_RESOLUES, JSON.stringify(r));
+  }
+}

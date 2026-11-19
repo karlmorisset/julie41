@@ -415,6 +415,7 @@
         function verifier() {
             if (!Object.keys(VRAI).every(k => choix[k] === VRAI[k])) return;
             resolu = true;
+            marquerResolue(ID);
             selection = null;
             afficher();
             message.classList.add("resolu");

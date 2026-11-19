@@ -379,6 +379,7 @@
             document.getElementById("bas").classList.add("fini");
             const mf = document.getElementById("msgFin");
             if (gagne) {
+                marquerResolue(ID);
                 mf.textContent = "Bien joué ! Note ce code pour ouvrir " + etapeSuivante(ID).nom + " :";
                 mf.className = "msg ok";
                 document.getElementById("code").textContent = MOT;

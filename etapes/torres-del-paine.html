@@ -371,6 +371,7 @@
 
         function terminer() {
             resolu = true;
+            marquerResolue(ID);
             grille.classList.add("resolu");
             const consigne = document.getElementById("consigne");
             consigne.style.minHeight = consigne.offsetHeight + "px"; // la grille ne doit pas bouger

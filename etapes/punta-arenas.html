@@ -374,6 +374,7 @@
 
         function gagner() {
             fini = true;
+            marquerResolue(ID);
             afficher();
             const pions = lignes[essai].querySelectorAll(".pion");
             pions.forEach((p, i) => setTimeout(() => {

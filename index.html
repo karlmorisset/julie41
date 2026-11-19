@@ -381,12 +381,17 @@
             contenu.appendChild(el("polyline", { points: pts, class: "trajet" }));
 
             const prog = lireProgression();
-            const derniere = prog[prog.length - 1];
+            const resolues = lireResolues();
+            // Une épreuve est verte dès qu'elle est gagnée (ou si la suivante est déjà ouverte)
+            const estFaite = i => resolues.includes(ETAPES[i].id) || (prog.includes(ETAPES[i].id) && prog.includes((ETAPES[i + 1] || {}).id));
+            // Le halo désigne la prochaine chose à faire : l'épreuve en cours, ou l'étape à ouvrir avec le code
+            const iActuelle = ETAPES.findIndex((_, i) => !estFaite(i));
+            const derniere = iActuelle >= 0 ? ETAPES[iActuelle].id : null;
 
             ETAPES.forEach((e, i) => {
                 const [x, y] = position(e.id);
                 const ouverte = prog.includes(e.id);
-                const faite = ouverte && prog.includes((ETAPES[i + 1] || {}).id);
+                const faite = estFaite(i);
                 const g = el("g", { class: "ville" + (ouverte ? " ouverte" : "") + (faite ? " faite" : "") + (e.id === derniere ? " actuelle" : "") });
                 g.appendChild(el("circle", { class: "zone", cx: x, cy: y, r: 22 }));
                 g.appendChild(el("circle", { class: "halo", cx: x, cy: y, r: 11 }));

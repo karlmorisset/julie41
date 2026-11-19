@@ -324,6 +324,7 @@
             const m = document.getElementById("msgMot");
             const saisie = document.getElementById("saisie");
             if (estBonneReponse(ID, saisie.value)) {
+                marquerResolue(ID);
                 document.getElementById("mot").style.display = "none";
                 document.getElementById("outils").style.display = "none";
                 document.getElementById("code").textContent = ETAPES[indexEtape(ID)].reponse;

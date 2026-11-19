@@ -405,7 +405,7 @@
             ev.preventDefault();
             // « Monte Darwin » ou « Mont Darwin » (comme sur la carte) sont acceptés aussi
             const nom = normaliser($("saisie").value).replace(/^MONTE?/, "");
-            if (estBonneReponse(ID, nom)) { $("saisie").blur(); changerEtat("valide"); }
+            if (estBonneReponse(ID, nom)) { $("saisie").blur(); marquerResolue(ID); changerEtat("valide"); }
             else {
                 $("msgNom").textContent = "Ce n'est pas ça. Regarde bien le nom du sommet.";
                 $("saisie").classList.remove("shake"); void $("saisie").offsetWidth; $("saisie").classList.add("shake");
