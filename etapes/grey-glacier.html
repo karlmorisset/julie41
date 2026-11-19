@@ -194,6 +194,10 @@
         #fin .code {
             margin: .3rem 0 .5rem;
         }
+        /* Écrans peu hauts (iPhone SE dans Safari) : bloc de fin plus compact */
+        @media (max-height: 640px) {
+            #fin .code { margin: .15rem 0 .35rem; padding: .3rem 1rem; font-size: 1.5rem; }
+        }
     </style>
 </head>
 
