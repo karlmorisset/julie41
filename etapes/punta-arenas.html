@@ -53,6 +53,7 @@
             font-size: .85rem;
             line-height: 1.4;
             margin: 0;
+            text-wrap: pretty;
         }
 
         .consigne strong {
@@ -247,6 +248,11 @@
         #fin .code {
             margin: .3rem 0 .5rem;
         }
+
+        /* Défaite : un peu d'air entre le message et le bouton */
+        #rejouer {
+            margin-top: .9rem;
+        }
     </style>
 </head>
 
@@ -386,8 +392,9 @@
             consigne.style.minHeight = consigne.offsetHeight + "px"; // le plateau ne doit pas bouger
             setTimeout(() => consigne.innerHTML =
                 "Chaque couleur cachait un chiffre : <strong>" + SECRET.join("") +
-                "</strong>, l'année où Magellan a franchi le détroit qui borde Punta Arenas.", 1400);
-            document.getElementById("msgFin").textContent = "Ton code pour " + etapeSuivante(ID).nom + " :";
+                "</strong>, l'année où Magellan a franchi le détroit qui borde Punta Arenas. " +
+                "C'est ton code pour " + etapeSuivante(ID).nom + " :", 1400);
+            document.getElementById("msgFin").style.display = "none";
             document.getElementById("code").textContent = SECRET.join("");
             setTimeout(() => document.getElementById("bas").classList.add("fini"), 1600);
         }
