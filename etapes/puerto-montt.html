@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Puerto Montt</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .taquin {
+            height: 100dvh;
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: max(.6rem, env(safe-area-inset-top)) 1rem max(clamp(1.2rem, 4dvh, 2.5rem), env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .entete {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .entete .retour {
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+        .entete .etape {
+            font-size: .75rem;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .consigne {
+            color: var(--muted);
+            font-size: .85rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* --- Plateau carré, aussi grand que possible --- */
+        .zone-plateau {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            container-type: size;
+        }
+
+        #plateau {
+            --cote: min(100cqw, 100cqh);
+            position: relative;
+            width: var(--cote);
+            height: var(--cote);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .06);
+            overflow: hidden;
+        }
+
+        .piece {
+            position: absolute;
+            width: calc(var(--cote) / 3);
+            height: calc(var(--cote) / 3);
+            background-image: url("../img/puerto-montt.jpg");
+            background-size: var(--cote) var(--cote);
+            box-shadow: inset 0 0 0 1.5px rgba(15, 42, 61, .9);
+            border-radius: 6px;
+            transition: left .18s ease, top .18s ease, border-radius .6s, box-shadow .6s;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #plateau.resolu .piece {
+            box-shadow: none;
+            border-radius: 0;
+            cursor: default;
+        }
+
+        /* La pièce manquante apparaît à la fin */
+        .piece.derniere {
+            opacity: 0;
+            transition: opacity .8s;
+        }
+
+        #plateau.resolu .piece.derniere {
+            opacity: 1;
+        }
+
+        /* --- Bas : compteur, puis la phrase finale (même place) --- */
+        #bas {
+            position: relative;
+            flex: 0 0 auto;
+            height: 8.5rem;
+        }
+
+        #outils {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+        }
+
+        #outils p {
+            margin: 0;
+            font-size: .85rem;
+            color: var(--muted);
+        }
+
+        .petit {
+            background: none;
+            border: 1px solid var(--muted);
+            color: var(--text);
+            border-radius: 999px;
+            padding: .4rem .9rem;
+            font: inherit;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+
+        #bas.fini #outils {
+            display: none;
+        }
+
+        #fin {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: .4rem;
+        }
+
+        #bas.fini #fin {
+            display: flex;
+            animation: apparait 1.2s both;
+        }
+
+        @keyframes apparait {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        #phrase {
+            margin: 0;
+            font-size: 1.15rem;
+            font-style: italic;
+            line-height: 1.4;
+            color: var(--accent-2);
+        }
+    </style>
+</head>
+
+<body>
+    <main class="taquin">
+        <div class="entete">
+            <a class="retour" href="../index.html">← Carte</a>
+            <span class="etape">Étape 9 sur 9</span>
+        </div>
+        <h1>Puerto Montt</h1>
+        <p class="consigne" id="consigne">Dernière étape ! Remets l'image dans l'ordre : touche une pièce voisine de
+            la case vide pour la faire glisser.</p>
+
+        <div class="zone-plateau">
+            <div id="plateau"></div>
+        </div>
+
+        <div id="bas">
+            <div id="outils">
+                <p id="compteur">0 coup</p>
+                <button class="petit" id="melanger" type="button">Mélanger à nouveau</button>
+            </div>
+            <div id="fin">
+                <p id="phrase"></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        const ID = "puerto-montt";
+        garde(ID);
+
+        // === Phrase finale, révélée quand l'image est reconstituée ===
+        const PHRASE = "Nous sommes partis ce matin de Merlo et ce soir nous serons à Delorme";
+
+        const N = 3;
+        const plateau = document.getElementById("plateau");
+        const compteur = document.getElementById("compteur");
+        // pos[i] = case (0..8) où se trouve la pièce i ; la pièce 8 est la case vide
+        let pos = [...Array(N * N).keys()];
+        let coups = 0;
+        let resolu = false;
+
+        const pieces = pos.map(i => {
+            const p = document.createElement("div");
+            p.className = "piece" + (i === N * N - 1 ? " derniere" : "");
+            // Morceau d'image de la pièce, d'après sa place dans l'image finale
+            p.style.backgroundPosition = (i % N) * 50 + "% " + Math.floor(i / N) * 50 + "%";
+            p.onclick = () => bouger(i);
+            plateau.appendChild(p);
+            return p;
+        });
+        const VIDE = N * N - 1;
+
+        function placer() {
+            pieces.forEach((p, i) => {
+                p.style.left = "calc(var(--cote) / 3 * " + (pos[i] % N) + ")";
+                p.style.top = "calc(var(--cote) / 3 * " + Math.floor(pos[i] / N) + ")";
+            });
+        }
+
+        const voisines = (a, b) => {
+            const [ra, ca, rb, cb] = [Math.floor(a / N), a % N, Math.floor(b / N), b % N];
+            return Math.abs(ra - rb) + Math.abs(ca - cb) === 1;
+        };
+
+        function bouger(i, compter = true) {
+            if (resolu || i === VIDE || !voisines(pos[i], pos[VIDE])) return false;
+            [pos[i], pos[VIDE]] = [pos[VIDE], pos[i]];
+            if (compter) {
+                coups++;
+                compteur.textContent = coups + " coup" + (coups > 1 ? "s" : "");
+                placer();
+                if (pos.every((p, k) => p === k)) terminer();
+            }
+            return true;
+        }
+
+        // Mélange par coups au hasard depuis l'image résolue : toujours faisable
+        function melanger() {
+            pos = [...Array(N * N).keys()];
+            let precedent = -1;
+            do {
+                for (let n = 0; n < 120; n++) {
+                    const choix = pos.map((_, i) => i).filter(i => i !== VIDE && i !== precedent && voisines(pos[i], pos[VIDE]));
+                    precedent = choix[Math.floor(Math.random() * choix.length)];
+                    bouger(precedent, false);
+                }
+            } while (pos.filter((p, k) => p === k).length > 2); // au moins 7 pièces mal placées
+            coups = 0;
+            compteur.textContent = "0 coup";
+            placer();
+        }
+
+        function terminer() {
+            resolu = true;
+            plateau.classList.add("resolu");
+            document.getElementById("consigne").textContent = "Sentados frente al mar, Puerto Montt.";
+            document.getElementById("phrase").textContent = PHRASE;
+            setTimeout(() => document.getElementById("bas").classList.add("fini"), 900);
+        }
+
+        document.getElementById("melanger").onclick = melanger;
+        melanger();
+    </script>
+</body>
+
+</html>
